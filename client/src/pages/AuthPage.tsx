@@ -47,34 +47,52 @@ export default function AuthPage() {
   };
 
   const handlePhoneSubmit = async () => {
-    if (phone.length < 4) {
-      toast({ title: "Invalid Phone", description: "Please enter a valid phone number.", variant: "destructive" });
+    if (phone.length < 10) {
+      toast({ title: "Invalid Phone", description: "Please enter a valid 10-digit phone number.", variant: "destructive" });
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/phone", {
+      // First check if user exists
+      const checkResponse = await fetch("/api/auth/phone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
       
-      const data = await response.json();
-      setIsLoading(false);
+      const checkData = await checkResponse.json();
       
-      if (data.exists && data.user) {
-        const userRole = data.user.role;
+      if (checkData.exists && checkData.user) {
+        const userRole = checkData.user.role;
         
+        // Admin gets direct access without OTP
         if (userRole === "ADMIN") {
-          login("ADMIN", data.user);
+          setIsLoading(false);
+          login("ADMIN", checkData.user);
           setLocation("/admin/dashboard");
           return;
         }
         
-        setStep("otp");
+        // Send OTP for other users
+        const otpResponse = await fetch("/api/auth/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone }),
+        });
+        
+        const otpData = await otpResponse.json();
+        setIsLoading(false);
+        
+        if (otpData.success) {
+          toast({ title: "OTP Sent", description: otpData.mock ? "Use 1234 for testing" : "Check your SMS" });
+          setStep("otp");
+        } else {
+          toast({ title: "Error", description: otpData.error || "Failed to send OTP", variant: "destructive" });
+        }
       } else {
+        setIsLoading(false);
         toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
         setAuthMode("register");
         setView("register_role");
@@ -86,39 +104,42 @@ export default function AuthPage() {
   };
 
   const verifyOtp = async () => {
-    setIsLoading(true);
-    
-    if (otp !== "1234") { 
-      setIsLoading(false);
-      toast({ title: "Invalid OTP", description: "Use 1234 for testing.", variant: "destructive" });
+    if (!otp || otp.length < 4) {
+      toast({ title: "Invalid OTP", description: "Please enter a valid OTP.", variant: "destructive" });
       return;
     }
+    
+    setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/phone", {
+      const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, otp }),
       });
       
       const data = await response.json();
       setIsLoading(false);
       
-      if (data.exists && data.user) {
-        const userRole = data.user.role as "ADMIN" | "WORKER" | "CUSTOMER";
-        login(userRole, data.user);
-        
-        if (userRole === "ADMIN") {
-          setLocation("/admin/dashboard");
-        } else if (userRole === "WORKER") {
-          setLocation("/worker/dashboard");
+      if (data.success && data.verified) {
+        if (data.user) {
+          const userRole = data.user.role as "ADMIN" | "WORKER" | "CUSTOMER";
+          login(userRole, data.user);
+          
+          if (userRole === "ADMIN") {
+            setLocation("/admin/dashboard");
+          } else if (userRole === "WORKER") {
+            setLocation("/worker/dashboard");
+          } else {
+            setLocation("/customer/home");
+          }
         } else {
-          setLocation("/customer/home");
+          toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
+          setAuthMode("register");
+          setView("register_role");
         }
       } else {
-        toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
-        setAuthMode("register");
-        setView("register_role");
+        toast({ title: "Invalid OTP", description: data.error || "Please try again.", variant: "destructive" });
       }
     } catch (error) {
       setIsLoading(false);

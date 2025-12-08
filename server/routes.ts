@@ -11,6 +11,111 @@ export async function registerRoutes(
   
   // ============= AUTH ROUTES =============
   
+  // In-memory OTP session store (for demo - use Redis in production)
+  const otpSessions: Map<string, string> = new Map();
+  
+  // Send OTP via 2Factor
+  app.post("/api/auth/send-otp", async (req, res) => {
+    try {
+      const { phone } = req.body;
+      
+      if (!phone || phone.length < 10) {
+        return res.status(400).json({ error: "Invalid phone number" });
+      }
+      
+      const apiKey = process.env.TWOFACTOR_API_KEY;
+      
+      if (!apiKey) {
+        // Fallback to mock OTP if API key not configured
+        const mockSessionId = `mock_${Date.now()}`;
+        otpSessions.set(phone, mockSessionId);
+        return res.json({ 
+          success: true, 
+          sessionId: mockSessionId,
+          message: "OTP sent (mock mode - use 1234)",
+          mock: true
+        });
+      }
+      
+      // Format phone number for India (add 91 if not present)
+      const formattedPhone = phone.startsWith("91") ? phone : `91${phone}`;
+      
+      // Send OTP via 2Factor API
+      const response = await fetch(`https://2factor.in/API/V1/${apiKey}/SMS/${formattedPhone}/AUTOGEN`);
+      const data = await response.json();
+      
+      if (data.Status === "Success") {
+        otpSessions.set(phone, data.Details);
+        return res.json({ 
+          success: true, 
+          sessionId: data.Details,
+          message: "OTP sent successfully"
+        });
+      } else {
+        return res.status(400).json({ 
+          error: data.Details || "Failed to send OTP" 
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Verify OTP via 2Factor
+  app.post("/api/auth/verify-otp", async (req, res) => {
+    try {
+      const { phone, otp } = req.body;
+      
+      if (!phone || !otp) {
+        return res.status(400).json({ error: "Phone and OTP are required" });
+      }
+      
+      const sessionId = otpSessions.get(phone);
+      const apiKey = process.env.TWOFACTOR_API_KEY;
+      
+      if (!apiKey || sessionId?.startsWith("mock_")) {
+        // Mock verification - accept 1234
+        if (otp === "1234") {
+          otpSessions.delete(phone);
+          const user = await storage.getUserByPhone(phone);
+          return res.json({ 
+            success: true, 
+            verified: true,
+            user,
+            message: "OTP verified (mock mode)"
+          });
+        } else {
+          return res.status(400).json({ error: "Invalid OTP. Use 1234 for testing." });
+        }
+      }
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "OTP session expired. Please request new OTP." });
+      }
+      
+      // Verify OTP via 2Factor API
+      const response = await fetch(`https://2factor.in/API/V1/${apiKey}/SMS/VERIFY/${sessionId}/${otp}`);
+      const data = await response.json();
+      
+      if (data.Status === "Success") {
+        otpSessions.delete(phone);
+        const user = await storage.getUserByPhone(phone);
+        return res.json({ 
+          success: true, 
+          verified: true,
+          user,
+          message: "OTP verified successfully"
+        });
+      } else {
+        return res.status(400).json({ 
+          error: data.Details || "Invalid OTP" 
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
   // Login / Register with Phone
   app.post("/api/auth/phone", async (req, res) => {
     try {
