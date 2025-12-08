@@ -7,10 +7,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { registerCustomer } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CustomerRegister() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
   
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -35,10 +38,33 @@ export default function CustomerRegister() {
     toast({ title: "OTP Sent", description: "Code sent to " + formData.phone });
   };
 
-  const handleCreateAccount = () => {
-    // Mock submission
-    toast({ title: "Account Created!", description: "Welcome to ServiceHub Pro." });
-    setLocation("/customer/home");
+  const handleCreateAccount = async () => {
+    if (!formData.name || !formData.phone) {
+      toast({ title: "Missing Fields", description: "Please fill all required fields.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const response = await registerCustomer({
+        phone: formData.phone,
+        email: formData.email || null,
+        fullName: formData.name,
+        profilePhoto: null,
+        gender: formData.gender || null,
+        dateOfBirth: null,
+        isActive: true,
+        house: formData.house,
+        street: formData.street,
+        city: formData.city,
+        pincode: formData.pincode,
+      });
+
+      toast({ title: "Account Created!", description: "Welcome to ServiceHub Pro." });
+      login("CUSTOMER", response.user);
+      setLocation("/customer/home");
+    } catch (error: any) {
+      toast({ title: "Registration Failed", description: error.message, variant: "destructive" });
+    }
   };
 
   return (

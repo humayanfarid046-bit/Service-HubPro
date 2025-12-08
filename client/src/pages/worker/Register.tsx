@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { registerWorker } from "@/lib/api";
 
 // Step Configuration
 const STEPS = [
@@ -99,23 +100,55 @@ export default function WorkerRegister() {
     setStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.bankName || !formData.accountNo || !formData.ifsc) {
       toast({ title: "Missing Bank Details", description: "Please provide bank details for payouts.", variant: "destructive" });
       return;
     }
     
     setIsSubmitting(true);
-    setTimeout(() => {
+    
+    try {
+      await registerWorker({
+        phone: formData.phone,
+        email: formData.email || null,
+        fullName: formData.fullName,
+        profilePhoto: null,
+        gender: formData.gender || null,
+        dateOfBirth: formData.dob || null,
+        isActive: true,
+        category: formData.category,
+        subService: formData.subService,
+        experience: parseInt(formData.experience) || 0,
+        availability: formData.availability,
+        house: formData.house,
+        street: formData.street,
+        city: formData.city,
+        pincode: formData.pincode,
+        idProof: null,
+        policeVerification: null,
+        skillCertificate: null,
+        bankHolderName: formData.bankName,
+        accountNumber: formData.accountNo,
+        ifscCode: formData.ifsc,
+        upiId: formData.upiId || null,
+      });
+
       setIsSubmitting(false);
       toast({ 
         title: "Registration Submitted!", 
         description: "Your application is under review by the admin.",
         duration: 5000 
       });
-      // Redirect to a "Pending Approval" or Login page
-      setLocation("/auth"); 
-    }, 2000);
+      setLocation("/auth");
+    } catch (error: any) {
+      setIsSubmitting(false);
+      toast({ 
+        title: "Registration Failed", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    }
   };
 
   return (
