@@ -18,7 +18,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -53,16 +54,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         {NAV_ITEMS.map((item) => {
           const isActive = location === item.path;
           return (
-            <Link key={item.path} href={item.path}>
-              <a className={cn(
+            <Link 
+              key={item.path} 
+              href={item.path}
+              className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive 
                   ? "bg-primary text-white shadow-lg shadow-primary/20" 
                   : "text-slate-400 hover:text-white hover:bg-white/5"
-              )}>
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </a>
+              )}
+            >
+              <item.icon className="w-5 h-5" />
+              {item.label}
             </Link>
           );
         })}
@@ -99,6 +102,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64 border-r-0">
+                <VisuallyHidden>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </VisuallyHidden>
                 <NavContent />
               </SheetContent>
             </Sheet>
