@@ -1,0 +1,84 @@
+এখন admin panel এ কাজ করবো।
+
+Create a modern, clean, fully responsive Admin Dashboard UI for the “ServiceHub Pro” home service booking app.
+
+The dashboard must be beautifully designed, minimal, fast, and professional with soft shadows, rounded cards, bold headings, and a light modern color palette.
+
+Include the following core dashboard sections and widgets:
+
+1. Overview / Analytics Section:
+   • Total Bookings
+   • Pending Bookings
+   • Completed Bookings
+   • Cancelled Bookings
+   • Total Revenue
+   • Daily/Weekly/Monthly Earnings Graph
+   • Active Workers
+   • Active Customers
+   • Top Services (bar chart or card list)
+   • Live Ongoing Orders indicator
+
+2. Main Menu / Navigation Tabs:
+   • Dashboard
+   • Services
+   • Workers
+   • Customers
+   • Orders
+   • Payments & Payouts
+   • Offers & Coupons
+   • Notifications
+   • Refunds & Disputes
+   • Settings
+
+3. Service Management Screens:
+   • Add/Edit/Delete Service
+   • Category & Sub-category control
+   • Pricing, packages, images, and offers management
+
+4. Worker Panel (inside admin):
+   • KYC approval list
+   • Worker availability
+   • Worker ratings and performance
+   • Worker earnings summary
+   • Block/unblock
+
+5. Customer Management:
+   • Customer list
+   • Booking history
+   • Block, warnings, refund cases
+
+6. Order Management:
+   • Booking list with filters
+   • Order timeline view
+   • Assign/change worker
+   • Real-time status update monitoring
+   • Invoice viewer
+
+7. Payment & Finance:
+   • Razorpay payment log
+   • COD summary
+   • Worker payouts screen
+   • Admin earning graph
+
+8. Offers & Marketing:
+   • Coupon creator
+   • Offer banners
+   • Push notification manager
+
+9. System Settings:
+   • App settings
+   • Payment settings
+   • Notification settings
+   • Admin profile
+
+UI STYLE REQUIREMENTS:
+• Use clean cards with 20-28px rounded corners
+• Soft shadows
+• Light mode (white + soft grey + primary accent)
+• Simple icons
+• Good spacing & grid layout
+• Premium admin dashboard feeling
+• Smooth micro-interactions and transitions
+• Must look visually luxurious and enterprise-grade
+
+Deliver a visually polished Admin Dashboard UI with perfect spacing, typography, and a well-structured layout suitable for a real production-level home service marketplace.

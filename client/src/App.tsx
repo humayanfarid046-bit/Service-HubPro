@@ -12,7 +12,12 @@ import CustomerHome from "@/pages/customer/Home";
 import CustomerBooking from "@/pages/customer/Booking";
 import CustomerTracking from "@/pages/customer/Tracking";
 import WorkerDashboard from "@/pages/worker/Dashboard";
+
+// Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
+import AdminServices from "@/pages/admin/Services";
+import AdminWorkers from "@/pages/admin/Workers";
+import AdminOrders from "@/pages/admin/Orders";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -23,41 +28,56 @@ function PrivateRoute({ component: Component, allowedRoles }: { component: React
   return <Component />;
 }
 
+function AdminRoute({ component: Component }: { component: React.ComponentType }) {
+  // Special wrapper for Admin routes as they don't use the MobileLayout
+  const { role } = useAuth();
+  
+  if (!role) return <Redirect to="/auth" />;
+  if (role !== "ADMIN") return <Redirect to="/auth" />;
+
+  return <Component />;
+}
+
 function Router() {
   return (
-    <MobileLayout>
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-        
-        {/* Customer Routes */}
-        <Route path="/customer/home">
-          <PrivateRoute component={CustomerHome} allowedRoles={["CUSTOMER"]} />
-        </Route>
-        <Route path="/customer/book/:id">
-          <PrivateRoute component={CustomerBooking} allowedRoles={["CUSTOMER"]} />
-        </Route>
-        <Route path="/customer/bookings">
-          <PrivateRoute component={CustomerTracking} allowedRoles={["CUSTOMER"]} />
-        </Route>
+    <Switch>
+      <Route path="/auth" component={AuthPage} />
+      
+      {/* Admin Routes - these use their own layout */}
+      <Route path="/admin/dashboard">
+        <AdminRoute component={AdminDashboard} />
+      </Route>
+      <Route path="/admin/services">
+        <AdminRoute component={AdminServices} />
+      </Route>
+      <Route path="/admin/workers">
+        <AdminRoute component={AdminWorkers} />
+      </Route>
+      <Route path="/admin/orders">
+        <AdminRoute component={AdminOrders} />
+      </Route>
 
-        {/* Worker Routes */}
-        <Route path="/worker/dashboard">
-          <PrivateRoute component={WorkerDashboard} allowedRoles={["WORKER"]} />
-        </Route>
+      {/* Mobile App Routes - these use the MobileLayout */}
+      <Route path="/customer/home">
+        <MobileLayout><PrivateRoute component={CustomerHome} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/customer/book/:id">
+        <MobileLayout><PrivateRoute component={CustomerBooking} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/customer/bookings">
+        <MobileLayout><PrivateRoute component={CustomerTracking} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/worker/dashboard">
+        <MobileLayout><PrivateRoute component={WorkerDashboard} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin/dashboard">
-          <PrivateRoute component={AdminDashboard} allowedRoles={["ADMIN"]} />
-        </Route>
-
-        {/* Default Redirects */}
-        <Route path="/">
-          <Redirect to="/auth" />
-        </Route>
-        
-        <Route component={NotFound} />
-      </Switch>
-    </MobileLayout>
+      {/* Default Redirects */}
+      <Route path="/">
+        <Redirect to="/auth" />
+      </Route>
+      
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
