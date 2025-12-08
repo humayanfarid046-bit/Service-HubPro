@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export type Role = "ADMIN" | "WORKER" | "CUSTOMER" | null;
@@ -24,11 +24,35 @@ interface AuthContextType {
   setCurrentUser: (user: User) => void;
 }
 
+const AUTH_STORAGE_KEY = "servicehub_auth_user";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function getStoredUser(): User | null {
+  try {
+    const stored = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      parsed.createdAt = new Date(parsed.createdAt);
+      return parsed;
+    }
+  } catch (e) {
+    console.error("Failed to parse stored user:", e);
+  }
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  }, [user]);
 
   const login = (role: Role, userData?: User) => {
     if (userData) {
