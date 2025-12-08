@@ -49,8 +49,3 @@ waitForPort = 5000
 
 [agent]
 mockupState = "FULLSTACK"
-
-[userenv]
-
-[userenv.shared]
-SUPABASE_DB_URL = "postgresql://postgres.eujbcppridravdibmbtv:YOUR_DB_PASSWORD@aws-0-ap-south-1.pooler.supabase.com:6543/postgres"
