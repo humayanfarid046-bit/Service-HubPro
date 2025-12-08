@@ -1,11 +1,23 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, ShoppingBag, TrendingUp, AlertCircle, ArrowUpRight, ArrowDownRight, Clock, IndianRupee, Loader2, Calendar } from "lucide-react";
+import { Users, ShoppingBag, TrendingUp, AlertCircle, ArrowUpRight, ArrowDownRight, Clock, IndianRupee, Loader2, Calendar, Wrench, ClipboardList, UserCog, ChevronRight, Wallet, Tag, Bell, HelpCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import type { Booking, User, Service, WorkerDetails } from "@shared/schema";
+
+const quickActions = [
+  { label: "Customers", icon: Users, description: "Manage customers", href: "/admin/customers", color: "from-blue-500 to-blue-600", bg: "bg-blue-50" },
+  { label: "Workers", icon: UserCog, description: "Manage workers", href: "/admin/workers", color: "from-indigo-500 to-indigo-600", bg: "bg-indigo-50" },
+  { label: "Orders", icon: ClipboardList, description: "View bookings", href: "/admin/orders", color: "from-emerald-500 to-emerald-600", bg: "bg-emerald-50" },
+  { label: "Services", icon: Wrench, description: "Manage services", href: "/admin/services", color: "from-purple-500 to-purple-600", bg: "bg-purple-50" },
+  { label: "Finance", icon: Wallet, description: "Revenue & payments", href: "/admin/finance", color: "from-amber-500 to-amber-600", bg: "bg-amber-50" },
+  { label: "Offers", icon: Tag, description: "Promotions", href: "/admin/offers", color: "from-pink-500 to-pink-600", bg: "bg-pink-50" },
+  { label: "Notifications", icon: Bell, description: "Send alerts", href: "/admin/notifications", color: "from-cyan-500 to-cyan-600", bg: "bg-cyan-50" },
+  { label: "Disputes", icon: HelpCircle, description: "Handle issues", href: "/admin/disputes", color: "from-red-500 to-red-600", bg: "bg-red-50" },
+];
 
 export default function AdminDashboard() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
@@ -151,6 +163,27 @@ export default function AdminDashboard() {
         <div className="flex gap-3">
           <Button variant="outline" className="bg-white">Export Report</Button>
         </div>
+      </div>
+
+      {/* Quick Actions - Paytm Style */}
+      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        {quickActions.map((action) => (
+          <Link key={action.href} href={action.href}>
+            <div 
+              className="group flex flex-col items-center p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer"
+              data-testid={`button-navigate-${action.label.toLowerCase()}`}
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-xl flex items-center justify-center mb-2 bg-gradient-to-br shadow-lg",
+                action.color
+              )}>
+                <action.icon className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-slate-700 text-center">{action.label}</span>
+              <span className="text-[10px] text-slate-400 hidden sm:block">{action.description}</span>
+            </div>
+          </Link>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
