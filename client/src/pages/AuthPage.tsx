@@ -37,8 +37,16 @@ export default function AuthPage() {
 
   const handleRoleSelect = (role: "CUSTOMER" | "WORKER") => {
     setSelectedRole(role);
-    setView("login"); // Proceed to phone input after role selection
-    setStep("phone");
+    if (role === "CUSTOMER") {
+        // Direct to new Customer Register form
+        setLocation("/customer/register");
+    } else {
+        // Worker registration might be different (or use same form but adapted)
+        // For now, keep existing flow for worker or mock it
+        // Assuming worker registration form is not requested yet, or we use the same login flow for now
+        setView("login"); 
+        setStep("phone");
+    }
   };
 
   const handlePhoneSubmit = () => {
@@ -88,7 +96,7 @@ export default function AuthPage() {
                 setView("register_role");
             }
         } else {
-            // Registration Logic
+            // Registration Logic (Fallback for Worker currently)
             if (selectedRole) {
                 login(selectedRole);
                 if (selectedRole === "WORKER") setLocation("/worker/dashboard");

@@ -13,6 +13,7 @@ import CustomerBooking from "@/pages/customer/Booking";
 import CustomerTracking from "@/pages/customer/Tracking";
 import CustomerProfile from "@/pages/customer/Profile";
 import CustomerSupport from "@/pages/customer/Support";
+import CustomerRegister from "@/pages/customer/Register"; // New Import
 
 // Worker Pages
 import WorkerDashboard from "@/pages/worker/Dashboard";
@@ -56,6 +57,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      <Route path="/customer/register" component={CustomerRegister} /> {/* Public Route */}
       
       {/* Admin Routes - these use their own layout */}
       <Route path="/admin/dashboard">
@@ -116,7 +118,6 @@ function Router() {
       <Route path="/worker/profile">
         <MobileLayout><PrivateRoute component={WorkerProfile} allowedRoles={["WORKER"]} /></MobileLayout>
       </Route>
-       {/* Note: Earnings and Support pages can be linked from Profile or Dashboard, added routes for them */}
        <Route path="/worker/earnings">
         <MobileLayout><PrivateRoute component={WorkerEarnings} allowedRoles={["WORKER"]} /></MobileLayout>
       </Route>
