@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit2, Trash2, MoreVertical, Filter, Loader2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, MoreVertical, Filter, Loader2, Upload, ImageIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -191,14 +191,58 @@ export default function AdminServices() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="image">Image URL (optional)</Label>
-                <Input
-                  id="image"
-                  placeholder="https://example.com/image.jpg"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  data-testid="input-image"
-                />
+                <Label>Service Image (optional)</Label>
+                <div className="flex flex-col gap-3">
+                  {formData.image ? (
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-slate-200">
+                      <img 
+                        src={formData.image} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={() => setFormData({ ...formData, image: "" })}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-2 text-slate-400" />
+                        <p className="text-sm text-slate-500">Click to upload image</p>
+                        <p className="text-xs text-slate-400">PNG, JPG up to 5MB</p>
+                      </div>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setFormData({ ...formData, image: reader.result as string });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        data-testid="input-image-upload"
+                      />
+                    </label>
+                  )}
+                  <div className="text-center text-xs text-slate-400">- OR -</div>
+                  <Input
+                    placeholder="Paste image URL here..."
+                    value={formData.image.startsWith("data:") ? "" : formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    data-testid="input-image-url"
+                  />
+                </div>
               </div>
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
