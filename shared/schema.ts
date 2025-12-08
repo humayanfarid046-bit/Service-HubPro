@@ -64,16 +64,34 @@ export const insertWorkerDetailsSchema = createInsertSchema(workerDetails).omit(
 export type InsertWorkerDetails = z.infer<typeof insertWorkerDetailsSchema>;
 export type WorkerDetails = typeof workerDetails.$inferSelect;
 
-// Services Table
+// Service Categories Table
+export const serviceCategories = pgTable("service_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  icon: text("icon"),
+  image: text("image"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertServiceCategorySchema = createInsertSchema(serviceCategories).omit({ id: true, createdAt: true });
+export type InsertServiceCategory = z.infer<typeof insertServiceCategorySchema>;
+export type ServiceCategory = typeof serviceCategories.$inferSelect;
+
+// Services Table (Subcategories)
 export const services = pgTable("services", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   category: text("category").notNull(),
+  subcategory: text("subcategory"),
   basePrice: numeric("base_price", { precision: 10, scale: 2 }).notNull(),
+  discountPrice: numeric("discount_price", { precision: 10, scale: 2 }),
+  duration: text("duration"),
   icon: text("icon"),
   image: text("image"),
   isActive: boolean("is_active").default(true).notNull(),
+  isFeatured: boolean("is_featured").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

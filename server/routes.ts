@@ -215,6 +215,56 @@ export async function registerRoutes(
     }
   });
 
+  // ============= SERVICE CATEGORY ROUTES =============
+  
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getAllCategories();
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/categories/:id", async (req, res) => {
+    try {
+      const category = await storage.getCategory(parseInt(req.params.id));
+      if (!category) return res.status(404).json({ error: "Category not found" });
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const category = await storage.createCategory(req.body);
+      res.json(category);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/categories/:id", async (req, res) => {
+    try {
+      const category = await storage.updateCategory(parseInt(req.params.id), req.body);
+      if (!category) return res.status(404).json({ error: "Category not found" });
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteCategory(parseInt(req.params.id));
+      if (!deleted) return res.status(404).json({ error: "Category not found" });
+      res.json({ message: "Category deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= SERVICE ROUTES =============
   
   app.get("/api/services", async (req, res) => {

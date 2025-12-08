@@ -5,6 +5,7 @@ import {
   customerDetails,
   workerDetails,
   services,
+  serviceCategories,
   bookings,
   notifications,
   platformSettings,
@@ -16,6 +17,8 @@ import {
   type InsertWorkerDetails,
   type Service,
   type InsertService,
+  type ServiceCategory,
+  type InsertServiceCategory,
   type Booking,
   type InsertBooking,
   type Notification,
@@ -42,6 +45,13 @@ export interface IStorage {
   createWorkerDetails(details: InsertWorkerDetails): Promise<WorkerDetails>;
   updateWorkerDetails(userId: number, updates: Partial<WorkerDetails>): Promise<WorkerDetails | undefined>;
   getAllWorkers(): Promise<WorkerDetails[]>;
+  
+  // Service Categories
+  getCategory(id: number): Promise<ServiceCategory | undefined>;
+  getAllCategories(): Promise<ServiceCategory[]>;
+  createCategory(category: InsertServiceCategory): Promise<ServiceCategory>;
+  updateCategory(id: number, updates: Partial<ServiceCategory>): Promise<ServiceCategory | undefined>;
+  deleteCategory(id: number): Promise<boolean>;
   
   // Services
   getService(id: number): Promise<Service | undefined>;
@@ -162,6 +172,36 @@ export class DatabaseStorage implements IStorage {
 
   async getAllWorkers(): Promise<WorkerDetails[]> {
     return db.select().from(workerDetails);
+  }
+
+  // Service Categories
+  async getCategory(id: number): Promise<ServiceCategory | undefined> {
+    const [category] = await db.select().from(serviceCategories).where(eq(serviceCategories.id, id));
+    return category;
+  }
+
+  async getAllCategories(): Promise<ServiceCategory[]> {
+    return db.select().from(serviceCategories);
+  }
+
+  async createCategory(category: InsertServiceCategory): Promise<ServiceCategory> {
+    const [result] = await db.insert(serviceCategories).values({
+      ...category,
+      icon: category.icon ?? null,
+      image: category.image ?? null,
+      isActive: category.isActive ?? true,
+    }).returning();
+    return result;
+  }
+
+  async updateCategory(id: number, updates: Partial<ServiceCategory>): Promise<ServiceCategory | undefined> {
+    const [result] = await db.update(serviceCategories).set(updates).where(eq(serviceCategories.id, id)).returning();
+    return result;
+  }
+
+  async deleteCategory(id: number): Promise<boolean> {
+    await db.delete(serviceCategories).where(eq(serviceCategories.id, id));
+    return true;
   }
 
   // Services
