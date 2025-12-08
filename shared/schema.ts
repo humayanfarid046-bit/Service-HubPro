@@ -419,3 +419,31 @@ export const announcements = pgTable("announcements", {
 export const insertAnnouncementSchema = createInsertSchema(announcements).omit({ id: true, createdAt: true });
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect;
+
+// Reviews Table
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  customerId: integer("customer_id").notNull().references(() => users.id),
+  workerId: integer("worker_id").notNull().references(() => users.id),
+  serviceId: integer("service_id").references(() => services.id),
+  rating: integer("rating").notNull(), // 1-5
+  reviewText: text("review_text"),
+  customerName: text("customer_name"),
+  workerName: text("worker_name"),
+  serviceName: text("service_name"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  isReported: boolean("is_reported").default(false).notNull(),
+  reportReason: text("report_reason"),
+  reportedBy: integer("reported_by").references(() => users.id),
+  reportedAt: timestamp("reported_at"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  rejectionReason: text("rejection_reason"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = typeof reviews.$inferSelect;

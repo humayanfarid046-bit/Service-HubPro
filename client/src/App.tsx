@@ -44,6 +44,10 @@ import AdminPushNotifications from "@/pages/admin/PushNotifications";
 import AdminSmsNotifications from "@/pages/admin/SmsNotifications";
 import AdminEmailBroadcast from "@/pages/admin/EmailBroadcast";
 import AdminAnnouncements from "@/pages/admin/Announcements";
+import AdminReviewList from "@/pages/admin/ReviewList";
+import AdminReviewApproval from "@/pages/admin/ReviewApproval";
+import AdminReviewReport from "@/pages/admin/ReviewReport";
+import AdminWorkerRatingPanel from "@/pages/admin/WorkerRatingPanel";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -131,6 +135,18 @@ function Router() {
       </Route>
       <Route path="/admin/announcements">
         <AdminRoute component={AdminAnnouncements} />
+      </Route>
+      <Route path="/admin/reviews">
+        <AdminRoute component={AdminReviewList} />
+      </Route>
+      <Route path="/admin/review-approval">
+        <AdminRoute component={AdminReviewApproval} />
+      </Route>
+      <Route path="/admin/review-reports">
+        <AdminRoute component={AdminReviewReport} />
+      </Route>
+      <Route path="/admin/worker-ratings">
+        <AdminRoute component={AdminWorkerRatingPanel} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}

@@ -24,7 +24,11 @@ import {
   Shield,
   MessageSquare,
   Mail,
-  Megaphone
+  Megaphone,
+  Star,
+  CheckSquare,
+  Flag,
+  Award
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -47,6 +51,10 @@ const NAV_ITEMS = [
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: CreditCard, label: "Finance", path: "/admin/finance" },
   { icon: Tag, label: "Offers", path: "/admin/offers" },
+  { icon: Star, label: "Review List", path: "/admin/reviews" },
+  { icon: CheckSquare, label: "Review Approval", path: "/admin/review-approval" },
+  { icon: Flag, label: "Review Reports", path: "/admin/review-reports" },
+  { icon: Award, label: "Worker Ratings", path: "/admin/worker-ratings" },
   { icon: Bell, label: "Push Notifications", path: "/admin/push-notifications" },
   { icon: MessageSquare, label: "SMS Notifications", path: "/admin/sms-notifications" },
   { icon: Mail, label: "Email Broadcast", path: "/admin/email-broadcast" },

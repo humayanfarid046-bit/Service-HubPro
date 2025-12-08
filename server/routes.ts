@@ -713,6 +713,72 @@ export async function registerRoutes(
     }
   });
 
+  // ============= REVIEWS ROUTES =============
+  
+  app.get("/api/reviews", async (req, res) => {
+    try {
+      const allReviews = await storage.getAllReviews();
+      res.json(allReviews);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/reviews/status/:status", async (req, res) => {
+    try {
+      const reviewsByStatus = await storage.getReviewsByStatus(req.params.status);
+      res.json(reviewsByStatus);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/reviews/reported", async (req, res) => {
+    try {
+      const reportedReviews = await storage.getReportedReviews();
+      res.json(reportedReviews);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/reviews/worker/:workerId", async (req, res) => {
+    try {
+      const workerReviews = await storage.getReviewsByWorker(parseInt(req.params.workerId));
+      res.json(workerReviews);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const review = await storage.createReview(req.body);
+      res.json(review);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/reviews/:id", async (req, res) => {
+    try {
+      const review = await storage.updateReview(parseInt(req.params.id), req.body);
+      if (!review) return res.status(404).json({ error: "Review not found" });
+      res.json(review);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/reviews/:id", async (req, res) => {
+    try {
+      await storage.deleteReview(parseInt(req.params.id));
+      res.json({ message: "Review deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= PUSH NOTIFICATIONS ROUTES =============
   
   app.get("/api/push-notifications", async (req, res) => {

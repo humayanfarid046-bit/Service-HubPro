@@ -67,6 +67,9 @@ import {
   type InsertEmailBroadcast,
   type Announcement,
   type InsertAnnouncement,
+  reviews,
+  type Review,
+  type InsertReview,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -190,6 +193,15 @@ export interface IStorage {
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
   updateAnnouncement(id: number, updates: Partial<Announcement>): Promise<Announcement | undefined>;
   deleteAnnouncement(id: number): Promise<boolean>;
+  
+  // Reviews
+  getAllReviews(): Promise<Review[]>;
+  getReviewsByStatus(status: string): Promise<Review[]>;
+  getReportedReviews(): Promise<Review[]>;
+  getReviewsByWorker(workerId: number): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  updateReview(id: number, updates: Partial<Review>): Promise<Review | undefined>;
+  deleteReview(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -651,6 +663,38 @@ export class DatabaseStorage implements IStorage {
   
   async deleteAnnouncement(id: number): Promise<boolean> {
     await db.delete(announcements).where(eq(announcements.id, id));
+    return true;
+  }
+  
+  // Reviews
+  async getAllReviews(): Promise<Review[]> {
+    return db.select().from(reviews).orderBy(desc(reviews.createdAt));
+  }
+  
+  async getReviewsByStatus(status: string): Promise<Review[]> {
+    return db.select().from(reviews).where(eq(reviews.status, status)).orderBy(desc(reviews.createdAt));
+  }
+  
+  async getReportedReviews(): Promise<Review[]> {
+    return db.select().from(reviews).where(eq(reviews.isReported, true)).orderBy(desc(reviews.reportedAt));
+  }
+  
+  async getReviewsByWorker(workerId: number): Promise<Review[]> {
+    return db.select().from(reviews).where(eq(reviews.workerId, workerId)).orderBy(desc(reviews.createdAt));
+  }
+  
+  async createReview(review: InsertReview): Promise<Review> {
+    const [created] = await db.insert(reviews).values(review).returning();
+    return created;
+  }
+  
+  async updateReview(id: number, updates: Partial<Review>): Promise<Review | undefined> {
+    const [updated] = await db.update(reviews).set(updates).where(eq(reviews.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteReview(id: number): Promise<boolean> {
+    await db.delete(reviews).where(eq(reviews.id, id));
     return true;
   }
 }
