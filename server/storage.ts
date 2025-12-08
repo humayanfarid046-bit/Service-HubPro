@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "./db";
 import {
   users,
@@ -9,6 +9,10 @@ import {
   bookings,
   notifications,
   platformSettings,
+  payments,
+  transactions,
+  payouts,
+  refunds,
   type User,
   type InsertUser,
   type CustomerDetails,
@@ -25,6 +29,14 @@ import {
   type InsertNotification,
   type PlatformSetting,
   type InsertPlatformSetting,
+  type Payment,
+  type InsertPayment,
+  type Transaction,
+  type InsertTransaction,
+  type Payout,
+  type InsertPayout,
+  type Refund,
+  type InsertRefund,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -77,6 +89,25 @@ export interface IStorage {
   getSetting(key: string): Promise<PlatformSetting | undefined>;
   getAllSettings(): Promise<PlatformSetting[]>;
   setSetting(key: string, value: string, description?: string): Promise<PlatformSetting>;
+  
+  // Payments
+  getAllPayments(): Promise<Payment[]>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  updatePayment(id: number, updates: Partial<Payment>): Promise<Payment | undefined>;
+  
+  // Transactions
+  getAllTransactions(): Promise<Transaction[]>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  
+  // Payouts
+  getAllPayouts(): Promise<Payout[]>;
+  createPayout(payout: InsertPayout): Promise<Payout>;
+  updatePayout(id: number, updates: Partial<Payout>): Promise<Payout | undefined>;
+  
+  // Refunds
+  getAllRefunds(): Promise<Refund[]>;
+  createRefund(refund: InsertRefund): Promise<Refund>;
+  updateRefund(id: number, updates: Partial<Refund>): Promise<Refund | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -316,6 +347,61 @@ export class DatabaseStorage implements IStorage {
       .values({ key, value, description: description ?? null })
       .returning();
     return setting;
+  }
+  
+  // Payments
+  async getAllPayments(): Promise<Payment[]> {
+    return db.select().from(payments).orderBy(desc(payments.createdAt));
+  }
+  
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db.insert(payments).values(insertPayment).returning();
+    return payment;
+  }
+  
+  async updatePayment(id: number, updates: Partial<Payment>): Promise<Payment | undefined> {
+    const [payment] = await db.update(payments).set(updates).where(eq(payments.id, id)).returning();
+    return payment;
+  }
+  
+  // Transactions
+  async getAllTransactions(): Promise<Transaction[]> {
+    return db.select().from(transactions).orderBy(desc(transactions.createdAt));
+  }
+  
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const [transaction] = await db.insert(transactions).values(insertTransaction).returning();
+    return transaction;
+  }
+  
+  // Payouts
+  async getAllPayouts(): Promise<Payout[]> {
+    return db.select().from(payouts).orderBy(desc(payouts.requestedAt));
+  }
+  
+  async createPayout(insertPayout: InsertPayout): Promise<Payout> {
+    const [payout] = await db.insert(payouts).values(insertPayout).returning();
+    return payout;
+  }
+  
+  async updatePayout(id: number, updates: Partial<Payout>): Promise<Payout | undefined> {
+    const [payout] = await db.update(payouts).set(updates).where(eq(payouts.id, id)).returning();
+    return payout;
+  }
+  
+  // Refunds
+  async getAllRefunds(): Promise<Refund[]> {
+    return db.select().from(refunds).orderBy(desc(refunds.requestedAt));
+  }
+  
+  async createRefund(insertRefund: InsertRefund): Promise<Refund> {
+    const [refund] = await db.insert(refunds).values(insertRefund).returning();
+    return refund;
+  }
+  
+  async updateRefund(id: number, updates: Partial<Refund>): Promise<Refund | undefined> {
+    const [refund] = await db.update(refunds).set(updates).where(eq(refunds.id, id)).returning();
+    return refund;
   }
 }
 

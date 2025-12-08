@@ -151,3 +151,77 @@ export const platformSettings = pgTable("platform_settings", {
 export const insertPlatformSettingSchema = createInsertSchema(platformSettings).omit({ id: true, updatedAt: true });
 export type InsertPlatformSetting = z.infer<typeof insertPlatformSettingSchema>;
 export type PlatformSetting = typeof platformSettings.$inferSelect;
+
+// Payments Table - All payment records from customers
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  customerId: integer("customer_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(), // COD, Razorpay, UPI
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, completed, failed
+  transactionId: text("transaction_id"),
+  razorpayPaymentId: text("razorpay_payment_id"),
+  razorpayOrderId: text("razorpay_order_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true });
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
+// Transactions Table - All financial transactions log
+export const transactions = pgTable("transactions", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // payment, payout, refund, commission
+  referenceId: integer("reference_id"), // booking/payment/payout id
+  referenceType: text("reference_type"), // booking, payment, payout
+  userId: integer("user_id").references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("completed"), // pending, completed, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, createdAt: true });
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+
+// Payouts Table - Worker payouts
+export const payouts = pgTable("payouts", {
+  id: serial("id").primaryKey(),
+  workerId: integer("worker_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, processing, completed, rejected
+  paymentMethod: text("payment_method"), // bank_transfer, upi
+  bankDetails: jsonb("bank_details"), // {accountNumber, ifsc, holderName}
+  upiId: text("upi_id"),
+  transactionId: text("transaction_id"),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+  adminNotes: text("admin_notes"),
+});
+
+export const insertPayoutSchema = createInsertSchema(payouts).omit({ id: true, requestedAt: true });
+export type InsertPayout = z.infer<typeof insertPayoutSchema>;
+export type Payout = typeof payouts.$inferSelect;
+
+// Refunds Table
+export const refunds = pgTable("refunds", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  paymentId: integer("payment_id").references(() => payments.id),
+  customerId: integer("customer_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  reason: text("reason"),
+  status: text("status").notNull().default("pending"), // pending, approved, processing, completed, rejected
+  refundMethod: text("refund_method"), // original_payment, bank_transfer
+  transactionId: text("transaction_id"),
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+  adminNotes: text("admin_notes"),
+});
+
+export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, requestedAt: true });
+export type InsertRefund = z.infer<typeof insertRefundSchema>;
+export type Refund = typeof refunds.$inferSelect;

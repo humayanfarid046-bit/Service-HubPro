@@ -603,6 +603,116 @@ export async function registerRoutes(
     }
   });
 
+  // ============= PAYMENT ROUTES =============
+  
+  app.get("/api/payments", async (req, res) => {
+    try {
+      const allPayments = await storage.getAllPayments();
+      res.json(allPayments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/payments", async (req, res) => {
+    try {
+      const payment = await storage.createPayment(req.body);
+      res.json(payment);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/payments/:id", async (req, res) => {
+    try {
+      const payment = await storage.updatePayment(parseInt(req.params.id), req.body);
+      if (!payment) return res.status(404).json({ error: "Payment not found" });
+      res.json(payment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= TRANSACTION ROUTES =============
+  
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const allTransactions = await storage.getAllTransactions();
+      res.json(allTransactions);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const transaction = await storage.createTransaction(req.body);
+      res.json(transaction);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ============= PAYOUT ROUTES =============
+  
+  app.get("/api/payouts", async (req, res) => {
+    try {
+      const allPayouts = await storage.getAllPayouts();
+      res.json(allPayouts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/payouts", async (req, res) => {
+    try {
+      const payout = await storage.createPayout(req.body);
+      res.json(payout);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/payouts/:id", async (req, res) => {
+    try {
+      const payout = await storage.updatePayout(parseInt(req.params.id), req.body);
+      if (!payout) return res.status(404).json({ error: "Payout not found" });
+      res.json(payout);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= REFUND ROUTES =============
+  
+  app.get("/api/refunds", async (req, res) => {
+    try {
+      const allRefunds = await storage.getAllRefunds();
+      res.json(allRefunds);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/refunds", async (req, res) => {
+    try {
+      const refund = await storage.createRefund(req.body);
+      res.json(refund);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/refunds/:id", async (req, res) => {
+    try {
+      const refund = await storage.updateRefund(parseInt(req.params.id), req.body);
+      if (!refund) return res.status(404).json({ error: "Refund not found" });
+      res.json(refund);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Hidden admin setup (for initial admin creation)
   app.post("/api/setup/admin", async (req, res) => {
     try {
