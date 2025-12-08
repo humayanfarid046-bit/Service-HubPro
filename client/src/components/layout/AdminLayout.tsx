@@ -13,7 +13,11 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  ShieldCheck,
+  UserCog,
+  Wrench,
+  UserCircle
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -27,9 +31,11 @@ interface AdminLayoutProps {
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+  { icon: UserCog, label: "User Management", path: "/admin/users" },
+  { icon: Wrench, label: "Workers", path: "/admin/workers" },
+  { icon: UserCircle, label: "Customers", path: "/admin/customers" },
+  { icon: ShieldCheck, label: "KYC Verification", path: "/admin/kyc" },
   { icon: Briefcase, label: "Services", path: "/admin/services" },
-  { icon: Users, label: "Workers", path: "/admin/workers" },
-  { icon: Users, label: "Customers", path: "/admin/customers" }, // Using Users icon again for simplicity or maybe UserCircle if imported
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: CreditCard, label: "Finance", path: "/admin/finance" },
   { icon: Tag, label: "Offers", path: "/admin/offers" },

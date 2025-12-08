@@ -34,6 +34,8 @@ import AdminOffers from "@/pages/admin/Offers";
 import AdminNotifications from "@/pages/admin/Notifications";
 import AdminDisputes from "@/pages/admin/Disputes";
 import AdminSettings from "@/pages/admin/Settings";
+import AdminUsers from "@/pages/admin/Users";
+import AdminKYC from "@/pages/admin/KYC";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -91,6 +93,12 @@ function Router() {
       </Route>
       <Route path="/admin/settings">
         <AdminRoute component={AdminSettings} />
+      </Route>
+      <Route path="/admin/users">
+        <AdminRoute component={AdminUsers} />
+      </Route>
+      <Route path="/admin/kyc">
+        <AdminRoute component={AdminKYC} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
