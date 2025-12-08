@@ -94,8 +94,8 @@ export default function AuthPage() {
   };
 
   const verifyOtp = async () => {
-    if (!otp || otp.length < 4) {
-      toast({ title: "Invalid OTP", description: "Please enter a valid OTP.", variant: "destructive" });
+    if (!otp || otp.length < 6) {
+      toast({ title: "Invalid OTP", description: "Please enter 6-digit OTP.", variant: "destructive" });
       return;
     }
     
@@ -313,11 +313,11 @@ export default function AuthPage() {
                     ) : (
                         <div className="space-y-6">
                             <Input 
-                                className="text-center text-3xl font-bold tracking-[1em] h-20 rounded-[1.5rem] border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
-                                maxLength={4}
+                                className="text-center text-2xl font-bold tracking-[0.5em] h-20 rounded-[1.5rem] border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
+                                maxLength={6}
                                 value={otp}
                                 onChange={(e) => setOtp(e.target.value)}
-                                placeholder="0000"
+                                placeholder="000000"
                             />
                             <Button 
                                 className="w-full h-14 text-lg font-bold rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
