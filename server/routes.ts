@@ -435,6 +435,63 @@ export async function registerRoutes(
     }
   });
 
+  // ============= PLATFORM SETTINGS ROUTES =============
+  
+  // Get all settings
+  app.get("/api/settings", async (req, res) => {
+    try {
+      const settings = await storage.getAllSettings();
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Get single setting
+  app.get("/api/settings/:key", async (req, res) => {
+    try {
+      const setting = await storage.getSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ error: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Update setting
+  app.put("/api/settings/:key", async (req, res) => {
+    try {
+      const { value, description } = req.body;
+      if (value === undefined) {
+        return res.status(400).json({ error: "Value is required" });
+      }
+      const setting = await storage.setSetting(req.params.key, String(value), description);
+      res.json(setting);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Bulk update settings
+  app.put("/api/settings", async (req, res) => {
+    try {
+      const { settings } = req.body;
+      if (!settings || !Array.isArray(settings)) {
+        return res.status(400).json({ error: "Settings array is required" });
+      }
+      const results = await Promise.all(
+        settings.map((s: { key: string; value: string; description?: string }) =>
+          storage.setSetting(s.key, s.value, s.description)
+        )
+      );
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= OBJECT STORAGE ROUTES =============
   
   // Get upload URL for file upload

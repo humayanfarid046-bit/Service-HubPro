@@ -7,6 +7,7 @@ import {
   services,
   bookings,
   notifications,
+  platformSettings,
   type User,
   type InsertUser,
   type CustomerDetails,
@@ -19,6 +20,8 @@ import {
   type InsertBooking,
   type Notification,
   type InsertNotification,
+  type PlatformSetting,
+  type InsertPlatformSetting,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -59,6 +62,11 @@ export interface IStorage {
   getNotificationsByUser(userId: number): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationRead(id: number): Promise<boolean>;
+  
+  // Platform Settings
+  getSetting(key: string): Promise<PlatformSetting | undefined>;
+  getAllSettings(): Promise<PlatformSetting[]>;
+  setSetting(key: string, value: string, description?: string): Promise<PlatformSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -243,6 +251,31 @@ export class DatabaseStorage implements IStorage {
   async markNotificationRead(id: number): Promise<boolean> {
     await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
     return true;
+  }
+  
+  // Platform Settings
+  async getSetting(key: string): Promise<PlatformSetting | undefined> {
+    const [setting] = await db.select().from(platformSettings).where(eq(platformSettings.key, key));
+    return setting;
+  }
+  
+  async getAllSettings(): Promise<PlatformSetting[]> {
+    return db.select().from(platformSettings);
+  }
+  
+  async setSetting(key: string, value: string, description?: string): Promise<PlatformSetting> {
+    const existing = await this.getSetting(key);
+    if (existing) {
+      const [setting] = await db.update(platformSettings)
+        .set({ value, description: description ?? existing.description, updatedAt: new Date() })
+        .where(eq(platformSettings.key, key))
+        .returning();
+      return setting;
+    }
+    const [setting] = await db.insert(platformSettings)
+      .values({ key, value, description: description ?? null })
+      .returning();
+    return setting;
   }
 }
 
