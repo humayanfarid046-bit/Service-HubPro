@@ -13,7 +13,7 @@ import CustomerBooking from "@/pages/customer/Booking";
 import CustomerTracking from "@/pages/customer/Tracking";
 import CustomerProfile from "@/pages/customer/Profile";
 import CustomerSupport from "@/pages/customer/Support";
-import CustomerRegister from "@/pages/customer/Register"; // New Import
+import CustomerRegister from "@/pages/customer/Register";
 
 // Worker Pages
 import WorkerDashboard from "@/pages/worker/Dashboard";
@@ -21,6 +21,7 @@ import WorkerJobDetails from "@/pages/worker/JobDetails";
 import WorkerEarnings from "@/pages/worker/Earnings";
 import WorkerProfile from "@/pages/worker/Profile";
 import WorkerSupport from "@/pages/worker/Support";
+import WorkerRegister from "@/pages/worker/Register"; // New Import
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -58,6 +59,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/customer/register" component={CustomerRegister} /> {/* Public Route */}
+      <Route path="/worker/register" component={WorkerRegister} /> {/* Public Route */}
       
       {/* Admin Routes - these use their own layout */}
       <Route path="/admin/dashboard">

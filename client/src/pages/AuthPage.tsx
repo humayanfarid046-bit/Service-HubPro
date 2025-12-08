@@ -41,11 +41,8 @@ export default function AuthPage() {
         // Direct to new Customer Register form
         setLocation("/customer/register");
     } else {
-        // Worker registration might be different (or use same form but adapted)
-        // For now, keep existing flow for worker or mock it
-        // Assuming worker registration form is not requested yet, or we use the same login flow for now
-        setView("login"); 
-        setStep("phone");
+        // Direct to new Worker Register form
+        setLocation("/worker/register");
     }
   };
 
