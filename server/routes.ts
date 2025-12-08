@@ -713,6 +713,119 @@ export async function registerRoutes(
     }
   });
 
+  // ============= WORKER DOCUMENTS ROUTES =============
+  
+  app.get("/api/worker-documents", async (req, res) => {
+    try {
+      const documents = await storage.getAllWorkerDocuments();
+      res.json(documents);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/worker-documents/worker/:workerId", async (req, res) => {
+    try {
+      const documents = await storage.getWorkerDocumentsByWorkerId(parseInt(req.params.workerId));
+      res.json(documents);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/worker-documents", async (req, res) => {
+    try {
+      const document = await storage.createWorkerDocument(req.body);
+      res.json(document);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/worker-documents/:id", async (req, res) => {
+    try {
+      const document = await storage.updateWorkerDocument(parseInt(req.params.id), req.body);
+      if (!document) return res.status(404).json({ error: "Document not found" });
+      res.json(document);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= ACTIVITY LOGS ROUTES =============
+  
+  app.get("/api/activity-logs", async (req, res) => {
+    try {
+      const logs = await storage.getAllActivityLogs();
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/activity-logs", async (req, res) => {
+    try {
+      const log = await storage.createActivityLog(req.body);
+      res.json(log);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ============= LOGIN EVENTS ROUTES =============
+  
+  app.get("/api/login-events", async (req, res) => {
+    try {
+      const events = await storage.getAllLoginEvents();
+      res.json(events);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/login-events", async (req, res) => {
+    try {
+      const event = await storage.createLoginEvent(req.body);
+      res.json(event);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ============= USER SECURITY SETTINGS ROUTES =============
+  
+  app.get("/api/security-settings", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      const settingsPromises = users.map(async (user) => {
+        const settings = await storage.getUserSecuritySettings(user.id);
+        return { userId: user.id, fullName: user.fullName, phone: user.phone, role: user.role, settings };
+      });
+      const allSettings = await Promise.all(settingsPromises);
+      res.json(allSettings);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/security-settings/:userId", async (req, res) => {
+    try {
+      const settings = await storage.getUserSecuritySettings(parseInt(req.params.userId));
+      res.json(settings || { is2FAEnabled: false });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/security-settings", async (req, res) => {
+    try {
+      const settings = await storage.upsertUserSecuritySettings(req.body);
+      res.json(settings);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   // ============= COUPON ROUTES =============
   
   app.get("/api/coupons", async (req, res) => {

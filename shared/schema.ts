@@ -268,3 +268,74 @@ export const disputes = pgTable("disputes", {
 export const insertDisputeSchema = createInsertSchema(disputes).omit({ id: true, createdAt: true });
 export type InsertDispute = z.infer<typeof insertDisputeSchema>;
 export type Dispute = typeof disputes.$inferSelect;
+
+// Worker Documents Table (for KYC/verification)
+export const workerDocuments = pgTable("worker_documents", {
+  id: serial("id").primaryKey(),
+  workerId: integer("worker_id").notNull().references(() => users.id),
+  documentType: text("document_type").notNull(), // aadhaar, pan, license, certificate, photo
+  documentNumber: text("document_number"),
+  fileUrl: text("file_url").notNull(),
+  fileName: text("file_name"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  reviewerId: integer("reviewer_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  rejectionReason: text("rejection_reason"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+});
+
+export const insertWorkerDocumentSchema = createInsertSchema(workerDocuments).omit({ id: true, submittedAt: true });
+export type InsertWorkerDocument = z.infer<typeof insertWorkerDocumentSchema>;
+export type WorkerDocument = typeof workerDocuments.$inferSelect;
+
+// Activity Logs Table
+export const activityLogs = pgTable("activity_logs", {
+  id: serial("id").primaryKey(),
+  actorId: integer("actor_id").references(() => users.id),
+  actorRole: text("actor_role"), // ADMIN, WORKER, CUSTOMER, SYSTEM
+  action: text("action").notNull(), // created, updated, deleted, approved, rejected, login, logout
+  entityType: text("entity_type"), // user, booking, service, payment, worker, etc.
+  entityId: integer("entity_id"),
+  description: text("description"),
+  metadata: text("metadata"), // JSON string for additional data
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertActivityLogSchema = createInsertSchema(activityLogs).omit({ id: true, createdAt: true });
+export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+export type ActivityLog = typeof activityLogs.$inferSelect;
+
+// Login Events Table
+export const loginEvents = pgTable("login_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  phone: text("phone"),
+  method: text("method"), // otp, password
+  success: boolean("success").notNull(),
+  failureReason: text("failure_reason"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  location: text("location"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLoginEventSchema = createInsertSchema(loginEvents).omit({ id: true, createdAt: true });
+export type InsertLoginEvent = z.infer<typeof insertLoginEventSchema>;
+export type LoginEvent = typeof loginEvents.$inferSelect;
+
+// User Security Settings Table (2FA)
+export const userSecuritySettings = pgTable("user_security_settings", {
+  userId: integer("user_id").primaryKey().references(() => users.id),
+  is2FAEnabled: boolean("is_2fa_enabled").default(false).notNull(),
+  twoFAMethod: text("two_fa_method"), // app, sms
+  secret: text("secret"), // encrypted TOTP secret
+  backupCodes: text("backup_codes"), // JSON array of backup codes
+  lastVerifiedAt: timestamp("last_verified_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserSecuritySettingSchema = createInsertSchema(userSecuritySettings);
+export type InsertUserSecuritySetting = z.infer<typeof insertUserSecuritySettingSchema>;
+export type UserSecuritySetting = typeof userSecuritySettings.$inferSelect;

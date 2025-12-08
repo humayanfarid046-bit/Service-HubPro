@@ -15,6 +15,10 @@ import {
   refunds,
   coupons,
   disputes,
+  workerDocuments,
+  activityLogs,
+  loginEvents,
+  userSecuritySettings,
   type User,
   type InsertUser,
   type CustomerDetails,
@@ -43,6 +47,14 @@ import {
   type InsertCoupon,
   type Dispute,
   type InsertDispute,
+  type WorkerDocument,
+  type InsertWorkerDocument,
+  type ActivityLog,
+  type InsertActivityLog,
+  type LoginEvent,
+  type InsertLoginEvent,
+  type UserSecuritySetting,
+  type InsertUserSecuritySetting,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -126,6 +138,24 @@ export interface IStorage {
   getAllDisputes(): Promise<Dispute[]>;
   createDispute(dispute: InsertDispute): Promise<Dispute>;
   updateDispute(id: number, updates: Partial<Dispute>): Promise<Dispute | undefined>;
+  
+  // Worker Documents
+  getAllWorkerDocuments(): Promise<WorkerDocument[]>;
+  getWorkerDocumentsByWorkerId(workerId: number): Promise<WorkerDocument[]>;
+  createWorkerDocument(doc: InsertWorkerDocument): Promise<WorkerDocument>;
+  updateWorkerDocument(id: number, updates: Partial<WorkerDocument>): Promise<WorkerDocument | undefined>;
+  
+  // Activity Logs
+  getAllActivityLogs(): Promise<ActivityLog[]>;
+  createActivityLog(log: InsertActivityLog): Promise<ActivityLog>;
+  
+  // Login Events
+  getAllLoginEvents(): Promise<LoginEvent[]>;
+  createLoginEvent(event: InsertLoginEvent): Promise<LoginEvent>;
+  
+  // User Security Settings
+  getUserSecuritySettings(userId: number): Promise<UserSecuritySetting | undefined>;
+  upsertUserSecuritySettings(settings: InsertUserSecuritySetting): Promise<UserSecuritySetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -460,6 +490,64 @@ export class DatabaseStorage implements IStorage {
   async updateDispute(id: number, updates: Partial<Dispute>): Promise<Dispute | undefined> {
     const [dispute] = await db.update(disputes).set(updates).where(eq(disputes.id, id)).returning();
     return dispute;
+  }
+  
+  // Worker Documents
+  async getAllWorkerDocuments(): Promise<WorkerDocument[]> {
+    return db.select().from(workerDocuments).orderBy(desc(workerDocuments.submittedAt));
+  }
+  
+  async getWorkerDocumentsByWorkerId(workerId: number): Promise<WorkerDocument[]> {
+    return db.select().from(workerDocuments).where(eq(workerDocuments.workerId, workerId));
+  }
+  
+  async createWorkerDocument(doc: InsertWorkerDocument): Promise<WorkerDocument> {
+    const [document] = await db.insert(workerDocuments).values(doc).returning();
+    return document;
+  }
+  
+  async updateWorkerDocument(id: number, updates: Partial<WorkerDocument>): Promise<WorkerDocument | undefined> {
+    const [document] = await db.update(workerDocuments).set(updates).where(eq(workerDocuments.id, id)).returning();
+    return document;
+  }
+  
+  // Activity Logs
+  async getAllActivityLogs(): Promise<ActivityLog[]> {
+    return db.select().from(activityLogs).orderBy(desc(activityLogs.createdAt));
+  }
+  
+  async createActivityLog(log: InsertActivityLog): Promise<ActivityLog> {
+    const [activityLog] = await db.insert(activityLogs).values(log).returning();
+    return activityLog;
+  }
+  
+  // Login Events
+  async getAllLoginEvents(): Promise<LoginEvent[]> {
+    return db.select().from(loginEvents).orderBy(desc(loginEvents.createdAt));
+  }
+  
+  async createLoginEvent(event: InsertLoginEvent): Promise<LoginEvent> {
+    const [loginEvent] = await db.insert(loginEvents).values(event).returning();
+    return loginEvent;
+  }
+  
+  // User Security Settings
+  async getUserSecuritySettings(userId: number): Promise<UserSecuritySetting | undefined> {
+    const [settings] = await db.select().from(userSecuritySettings).where(eq(userSecuritySettings.userId, userId));
+    return settings;
+  }
+  
+  async upsertUserSecuritySettings(settings: InsertUserSecuritySetting): Promise<UserSecuritySetting> {
+    const existing = await this.getUserSecuritySettings(settings.userId);
+    if (existing) {
+      const [updated] = await db.update(userSecuritySettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(userSecuritySettings.userId, settings.userId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(userSecuritySettings).values(settings).returning();
+    return created;
   }
 }
 
