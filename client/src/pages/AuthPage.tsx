@@ -65,17 +65,7 @@ export default function AuthPage() {
       const checkData = await checkResponse.json();
       
       if (checkData.exists && checkData.user) {
-        const userRole = checkData.user.role;
-        
-        // Admin gets direct access without OTP
-        if (userRole === "ADMIN") {
-          setIsLoading(false);
-          login("ADMIN", checkData.user);
-          setLocation("/admin/dashboard");
-          return;
-        }
-        
-        // Send OTP for other users
+        // Send OTP for all users including Admin
         const otpResponse = await fetch("/api/auth/send-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
