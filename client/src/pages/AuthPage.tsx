@@ -65,22 +65,19 @@ export default function AuthPage() {
       const checkData = await checkResponse.json();
       
       if (checkData.exists && checkData.user) {
-        // Send OTP for all users including Admin
-        const otpResponse = await fetch("/api/auth/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone }),
-        });
-        
-        const otpData = await otpResponse.json();
+        // Direct login without OTP (OTP disabled for now)
         setIsLoading(false);
+        const userRole = checkData.user.role as "ADMIN" | "WORKER" | "CUSTOMER";
+        login(userRole, checkData.user);
         
-        if (otpData.success) {
-          toast({ title: "OTP Sent", description: otpData.mock ? "Use 1234 for testing" : "Check your SMS" });
-          setStep("otp");
+        if (userRole === "ADMIN") {
+          setLocation("/admin/dashboard");
+        } else if (userRole === "WORKER") {
+          setLocation("/worker/dashboard");
         } else {
-          toast({ title: "Error", description: otpData.error || "Failed to send OTP", variant: "destructive" });
+          setLocation("/customer/home");
         }
+        return;
       } else {
         setIsLoading(false);
         toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
