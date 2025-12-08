@@ -52,6 +52,11 @@ import AdminSupportTickets from "@/pages/admin/SupportTickets";
 import AdminUserComplaints from "@/pages/admin/UserComplaints";
 import AdminChatMonitoring from "@/pages/admin/ChatMonitoring";
 import AdminReportedUsers from "@/pages/admin/ReportedUsers";
+import AdminActiveUserStats from "@/pages/admin/ActiveUserStats";
+import AdminBookingStats from "@/pages/admin/BookingStats";
+import AdminRevenueStats from "@/pages/admin/RevenueStats";
+import AdminWorkerPerformance from "@/pages/admin/WorkerPerformance";
+import AdminCustomerLifetimeValue from "@/pages/admin/CustomerLifetimeValue";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -163,6 +168,21 @@ function Router() {
       </Route>
       <Route path="/admin/reported-users">
         <AdminRoute component={AdminReportedUsers} />
+      </Route>
+      <Route path="/admin/active-users">
+        <AdminRoute component={AdminActiveUserStats} />
+      </Route>
+      <Route path="/admin/booking-stats">
+        <AdminRoute component={AdminBookingStats} />
+      </Route>
+      <Route path="/admin/revenue-stats">
+        <AdminRoute component={AdminRevenueStats} />
+      </Route>
+      <Route path="/admin/worker-performance">
+        <AdminRoute component={AdminWorkerPerformance} />
+      </Route>
+      <Route path="/admin/customer-clv">
+        <AdminRoute component={AdminCustomerLifetimeValue} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}

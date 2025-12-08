@@ -32,7 +32,12 @@ import {
   Ticket,
   MessageSquareWarning,
   MessageCircle,
-  UserX
+  UserX,
+  BarChart3,
+  PieChart,
+  TrendingUp,
+  Gauge,
+  Heart
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -46,6 +51,11 @@ interface AdminLayoutProps {
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+  { icon: BarChart3, label: "Active User Stats", path: "/admin/active-users" },
+  { icon: PieChart, label: "Booking Stats", path: "/admin/booking-stats" },
+  { icon: TrendingUp, label: "Revenue Stats", path: "/admin/revenue-stats" },
+  { icon: Gauge, label: "Worker Performance", path: "/admin/worker-performance" },
+  { icon: Heart, label: "Customer CLV", path: "/admin/customer-clv" },
   { icon: UserCog, label: "User Management", path: "/admin/users" },
   { icon: Wrench, label: "Workers", path: "/admin/workers" },
   { icon: UserCircle, label: "Customers", path: "/admin/customers" },
