@@ -17,7 +17,11 @@ import {
   ShieldCheck,
   UserCog,
   Wrench,
-  UserCircle
+  UserCircle,
+  FileCheck,
+  Activity,
+  LogIn,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -35,12 +39,16 @@ const NAV_ITEMS = [
   { icon: Wrench, label: "Workers", path: "/admin/workers" },
   { icon: UserCircle, label: "Customers", path: "/admin/customers" },
   { icon: ShieldCheck, label: "KYC Verification", path: "/admin/kyc" },
+  { icon: FileCheck, label: "Document Verification", path: "/admin/worker-verification" },
   { icon: Briefcase, label: "Services", path: "/admin/services" },
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: CreditCard, label: "Finance", path: "/admin/finance" },
   { icon: Tag, label: "Offers", path: "/admin/offers" },
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: AlertCircle, label: "Disputes", path: "/admin/disputes" },
+  { icon: Activity, label: "Activity Logs", path: "/admin/activity-logs" },
+  { icon: LogIn, label: "Login Logs", path: "/admin/login-logs" },
+  { icon: Shield, label: "2FA Settings", path: "/admin/2fa-settings" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
 

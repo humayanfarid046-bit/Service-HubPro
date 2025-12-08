@@ -36,6 +36,10 @@ import AdminDisputes from "@/pages/admin/Disputes";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminUsers from "@/pages/admin/Users";
 import AdminKYC from "@/pages/admin/KYC";
+import AdminWorkerVerification from "@/pages/admin/WorkerVerification";
+import AdminActivityLogs from "@/pages/admin/ActivityLogs";
+import AdminLoginLogs from "@/pages/admin/LoginLogs";
+import AdminTwoFactorSettings from "@/pages/admin/TwoFactorSettings";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -99,6 +103,18 @@ function Router() {
       </Route>
       <Route path="/admin/kyc">
         <AdminRoute component={AdminKYC} />
+      </Route>
+      <Route path="/admin/worker-verification">
+        <AdminRoute component={AdminWorkerVerification} />
+      </Route>
+      <Route path="/admin/activity-logs">
+        <AdminRoute component={AdminActivityLogs} />
+      </Route>
+      <Route path="/admin/login-logs">
+        <AdminRoute component={AdminLoginLogs} />
+      </Route>
+      <Route path="/admin/2fa-settings">
+        <AdminRoute component={AdminTwoFactorSettings} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
