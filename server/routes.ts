@@ -315,5 +315,50 @@ export async function registerRoutes(
     }
   });
 
+  // Update user
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.updateUser(id, req.body);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Hidden admin setup (for initial admin creation)
+  app.post("/api/setup/admin", async (req, res) => {
+    try {
+      const { phone, fullName, secretKey } = req.body;
+      
+      // Simple secret key verification
+      if (secretKey !== "SERVICEHUB_ADMIN_2024") {
+        return res.status(403).json({ error: "Invalid secret key" });
+      }
+      
+      // Check if admin already exists
+      const existingUser = await storage.getUserByPhone(phone);
+      if (existingUser) {
+        // Update existing user to admin
+        const updatedUser = await storage.updateUser(existingUser.id, { role: "ADMIN" });
+        return res.json({ user: updatedUser, message: "User upgraded to admin" });
+      }
+      
+      // Create new admin
+      const user = await storage.createUser({
+        phone,
+        fullName: fullName || "Admin",
+        role: "ADMIN",
+      });
+      
+      res.json({ user, message: "Admin created successfully" });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }
