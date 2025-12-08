@@ -44,6 +44,10 @@ import {
   ChevronRight,
   Key,
   Database,
+  Zap,
+  DollarSign,
+  ShieldAlert,
+  Users,
   type LucideIcon
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -157,6 +161,15 @@ const NAV_SECTIONS: NavSection[] = [
       { icon: Home, label: "Homepage Content", path: "/admin/homepage-content" },
       { icon: HelpCircle, label: "FAQ Manager", path: "/admin/faq" },
       { icon: FileText, label: "Terms & Policy", path: "/admin/terms-policy" },
+    ],
+  },
+  {
+    title: "Automation & AI",
+    icon: Zap,
+    items: [
+      { icon: Users, label: "Auto Assign Worker", path: "/admin/auto-assign" },
+      { icon: DollarSign, label: "Auto Price Suggestion", path: "/admin/auto-price" },
+      { icon: ShieldAlert, label: "Fraud Detection", path: "/admin/fraud-detection" },
     ],
   },
   {

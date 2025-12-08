@@ -68,6 +68,9 @@ import AdminEmailSMTPSettings from "@/pages/admin/EmailSMTPSettings";
 import AdminRolePermissions from "@/pages/admin/RolePermissions";
 import AdminAPIKeysManagement from "@/pages/admin/APIKeysManagement";
 import AdminDatabaseBackup from "@/pages/admin/DatabaseBackup";
+import AdminAutoAssignWorker from "@/pages/admin/AutoAssignWorker";
+import AdminAutoPriceSuggestion from "@/pages/admin/AutoPriceSuggestion";
+import AdminFraudDetection from "@/pages/admin/FraudDetection";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -227,6 +230,15 @@ function Router() {
       </Route>
       <Route path="/admin/database-backup">
         <AdminRoute component={AdminDatabaseBackup} />
+      </Route>
+      <Route path="/admin/auto-assign">
+        <AdminRoute component={AdminAutoAssignWorker} />
+      </Route>
+      <Route path="/admin/auto-price">
+        <AdminRoute component={AdminAutoPriceSuggestion} />
+      </Route>
+      <Route path="/admin/fraud-detection">
+        <AdminRoute component={AdminFraudDetection} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
