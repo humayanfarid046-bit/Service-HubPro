@@ -5,6 +5,7 @@ import * as schema from '@shared/schema';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_ANON_KEY!;
+const databaseUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables');
@@ -13,11 +14,12 @@ if (!supabaseUrl || !supabaseKey) {
 // Supabase client for auth and storage
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Database connection string from Supabase
-const connectionString = `${supabaseUrl.replace('https://', 'postgres://postgres:')}@db.${supabaseUrl.split('//')[1].split('.')[0]}.supabase.co:5432/postgres`;
+// PostgreSQL client for Drizzle (if database URL is provided)
+let db: ReturnType<typeof drizzle> | null = null;
 
-// PostgreSQL client for Drizzle
-const client = postgres(connectionString, { prepare: false });
+if (databaseUrl) {
+  const client = postgres(databaseUrl, { prepare: false });
+  db = drizzle(client, { schema });
+}
 
-// Drizzle ORM instance
-export const db = drizzle(client, { schema });
+export { db };
