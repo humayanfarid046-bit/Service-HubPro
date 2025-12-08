@@ -28,7 +28,11 @@ import {
   Star,
   CheckSquare,
   Flag,
-  Award
+  Award,
+  Ticket,
+  MessageSquareWarning,
+  MessageCircle,
+  UserX
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -55,6 +59,10 @@ const NAV_ITEMS = [
   { icon: CheckSquare, label: "Review Approval", path: "/admin/review-approval" },
   { icon: Flag, label: "Review Reports", path: "/admin/review-reports" },
   { icon: Award, label: "Worker Ratings", path: "/admin/worker-ratings" },
+  { icon: Ticket, label: "Support Tickets", path: "/admin/support-tickets" },
+  { icon: MessageSquareWarning, label: "User Complaints", path: "/admin/user-complaints" },
+  { icon: MessageCircle, label: "Chat Monitoring", path: "/admin/chat-monitoring" },
+  { icon: UserX, label: "Reported Users", path: "/admin/reported-users" },
   { icon: Bell, label: "Push Notifications", path: "/admin/push-notifications" },
   { icon: MessageSquare, label: "SMS Notifications", path: "/admin/sms-notifications" },
   { icon: Mail, label: "Email Broadcast", path: "/admin/email-broadcast" },

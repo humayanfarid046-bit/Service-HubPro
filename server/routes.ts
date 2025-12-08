@@ -713,6 +713,198 @@ export async function registerRoutes(
     }
   });
 
+  // ============= SUPPORT TICKETS ROUTES =============
+  
+  app.get("/api/support-tickets", async (req, res) => {
+    try {
+      const tickets = await storage.getAllSupportTickets();
+      res.json(tickets);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/support-tickets/status/:status", async (req, res) => {
+    try {
+      const tickets = await storage.getSupportTicketsByStatus(req.params.status);
+      res.json(tickets);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/support-tickets", async (req, res) => {
+    try {
+      const ticket = await storage.createSupportTicket(req.body);
+      res.json(ticket);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/support-tickets/:id", async (req, res) => {
+    try {
+      const ticket = await storage.updateSupportTicket(parseInt(req.params.id), req.body);
+      if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+      res.json(ticket);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/support-tickets/:id", async (req, res) => {
+    try {
+      await storage.deleteSupportTicket(parseInt(req.params.id));
+      res.json({ message: "Ticket deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= USER COMPLAINTS ROUTES =============
+  
+  app.get("/api/user-complaints", async (req, res) => {
+    try {
+      const complaints = await storage.getAllUserComplaints();
+      res.json(complaints);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/user-complaints/status/:status", async (req, res) => {
+    try {
+      const complaints = await storage.getUserComplaintsByStatus(req.params.status);
+      res.json(complaints);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/user-complaints", async (req, res) => {
+    try {
+      const complaint = await storage.createUserComplaint(req.body);
+      res.json(complaint);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/user-complaints/:id", async (req, res) => {
+    try {
+      const complaint = await storage.updateUserComplaint(parseInt(req.params.id), req.body);
+      if (!complaint) return res.status(404).json({ error: "Complaint not found" });
+      res.json(complaint);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/user-complaints/:id", async (req, res) => {
+    try {
+      await storage.deleteUserComplaint(parseInt(req.params.id));
+      res.json({ message: "Complaint deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= REPORTED USERS ROUTES =============
+  
+  app.get("/api/reported-users", async (req, res) => {
+    try {
+      const reports = await storage.getAllReportedUsers();
+      res.json(reports);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/reported-users/status/:status", async (req, res) => {
+    try {
+      const reports = await storage.getReportedUsersByStatus(req.params.status);
+      res.json(reports);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/reported-users", async (req, res) => {
+    try {
+      const report = await storage.createReportedUser(req.body);
+      res.json(report);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/reported-users/:id", async (req, res) => {
+    try {
+      const report = await storage.updateReportedUser(parseInt(req.params.id), req.body);
+      if (!report) return res.status(404).json({ error: "Report not found" });
+      res.json(report);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/reported-users/:id", async (req, res) => {
+    try {
+      await storage.deleteReportedUser(parseInt(req.params.id));
+      res.json({ message: "Report deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= CHAT MESSAGES ROUTES =============
+  
+  app.get("/api/chat-messages", async (req, res) => {
+    try {
+      const messages = await storage.getAllChatMessages();
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/chat-messages/flagged", async (req, res) => {
+    try {
+      const messages = await storage.getFlaggedChatMessages();
+      res.json(messages);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/chat-messages", async (req, res) => {
+    try {
+      const message = await storage.createChatMessage(req.body);
+      res.json(message);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/chat-messages/:id", async (req, res) => {
+    try {
+      const message = await storage.updateChatMessage(parseInt(req.params.id), req.body);
+      if (!message) return res.status(404).json({ error: "Message not found" });
+      res.json(message);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/chat-messages/:id", async (req, res) => {
+    try {
+      await storage.deleteChatMessage(parseInt(req.params.id));
+      res.json({ message: "Message deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= REVIEWS ROUTES =============
   
   app.get("/api/reviews", async (req, res) => {

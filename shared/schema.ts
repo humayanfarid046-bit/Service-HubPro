@@ -447,3 +447,102 @@ export const reviews = pgTable("reviews", {
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+
+// Support Tickets Table
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  ticketNumber: text("ticket_number").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  userName: text("user_name"),
+  userPhone: text("user_phone"),
+  userRole: text("user_role"),
+  subject: text("subject").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // booking, payment, worker, technical, other
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  status: text("status").notNull().default("open"), // open, in_progress, resolved, closed
+  assignedTo: integer("assigned_to").references(() => users.id),
+  assignedToName: text("assigned_to_name"),
+  resolution: text("resolution"),
+  resolvedAt: timestamp("resolved_at"),
+  closedAt: timestamp("closed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+
+// User Complaints Table
+export const userComplaints = pgTable("user_complaints", {
+  id: serial("id").primaryKey(),
+  complaintNumber: text("complaint_number").notNull(),
+  complainantId: integer("complainant_id").references(() => users.id),
+  complainantName: text("complainant_name"),
+  complainantPhone: text("complainant_phone"),
+  complainantRole: text("complainant_role"),
+  againstId: integer("against_id").references(() => users.id),
+  againstName: text("against_name"),
+  againstRole: text("against_role"),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  complaintType: text("complaint_type").notNull(), // behavior, service_quality, payment, fraud, other
+  description: text("description").notNull(),
+  evidence: text("evidence"), // URLs to uploaded evidence
+  priority: text("priority").notNull().default("medium"),
+  status: text("status").notNull().default("pending"), // pending, investigating, resolved, dismissed
+  resolution: text("resolution"),
+  actionTaken: text("action_taken"),
+  resolvedBy: integer("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserComplaintSchema = createInsertSchema(userComplaints).omit({ id: true, createdAt: true });
+export type InsertUserComplaint = z.infer<typeof insertUserComplaintSchema>;
+export type UserComplaint = typeof userComplaints.$inferSelect;
+
+// Reported Users Table
+export const reportedUsers = pgTable("reported_users", {
+  id: serial("id").primaryKey(),
+  reportedUserId: integer("reported_user_id").notNull().references(() => users.id),
+  reportedUserName: text("reported_user_name"),
+  reportedUserPhone: text("reported_user_phone"),
+  reportedUserRole: text("reported_user_role"),
+  reportedById: integer("reported_by_id").references(() => users.id),
+  reportedByName: text("reported_by_name"),
+  reportReason: text("report_reason").notNull(), // spam, harassment, fraud, fake_profile, inappropriate, other
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // pending, reviewed, action_taken, dismissed
+  actionTaken: text("action_taken"), // warning, suspended, banned, none
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertReportedUserSchema = createInsertSchema(reportedUsers).omit({ id: true, createdAt: true });
+export type InsertReportedUser = z.infer<typeof insertReportedUserSchema>;
+export type ReportedUser = typeof reportedUsers.$inferSelect;
+
+// Chat Messages Table (for Chat Monitoring)
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull().references(() => users.id),
+  senderName: text("sender_name"),
+  senderRole: text("sender_role"),
+  receiverId: integer("receiver_id").notNull().references(() => users.id),
+  receiverName: text("receiver_name"),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  message: text("message").notNull(),
+  messageType: text("message_type").notNull().default("text"), // text, image, file
+  isFlagged: boolean("is_flagged").default(false).notNull(),
+  flagReason: text("flag_reason"),
+  flaggedAt: timestamp("flagged_at"),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;

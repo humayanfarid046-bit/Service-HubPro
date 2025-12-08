@@ -70,6 +70,18 @@ import {
   reviews,
   type Review,
   type InsertReview,
+  supportTickets,
+  type SupportTicket,
+  type InsertSupportTicket,
+  userComplaints,
+  type UserComplaint,
+  type InsertUserComplaint,
+  reportedUsers,
+  type ReportedUser,
+  type InsertReportedUser,
+  chatMessages,
+  type ChatMessage,
+  type InsertChatMessage,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -202,6 +214,34 @@ export interface IStorage {
   createReview(review: InsertReview): Promise<Review>;
   updateReview(id: number, updates: Partial<Review>): Promise<Review | undefined>;
   deleteReview(id: number): Promise<boolean>;
+  
+  // Support Tickets
+  getAllSupportTickets(): Promise<SupportTicket[]>;
+  getSupportTicketsByStatus(status: string): Promise<SupportTicket[]>;
+  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
+  updateSupportTicket(id: number, updates: Partial<SupportTicket>): Promise<SupportTicket | undefined>;
+  deleteSupportTicket(id: number): Promise<boolean>;
+  
+  // User Complaints
+  getAllUserComplaints(): Promise<UserComplaint[]>;
+  getUserComplaintsByStatus(status: string): Promise<UserComplaint[]>;
+  createUserComplaint(complaint: InsertUserComplaint): Promise<UserComplaint>;
+  updateUserComplaint(id: number, updates: Partial<UserComplaint>): Promise<UserComplaint | undefined>;
+  deleteUserComplaint(id: number): Promise<boolean>;
+  
+  // Reported Users
+  getAllReportedUsers(): Promise<ReportedUser[]>;
+  getReportedUsersByStatus(status: string): Promise<ReportedUser[]>;
+  createReportedUser(report: InsertReportedUser): Promise<ReportedUser>;
+  updateReportedUser(id: number, updates: Partial<ReportedUser>): Promise<ReportedUser | undefined>;
+  deleteReportedUser(id: number): Promise<boolean>;
+  
+  // Chat Messages
+  getAllChatMessages(): Promise<ChatMessage[]>;
+  getFlaggedChatMessages(): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  updateChatMessage(id: number, updates: Partial<ChatMessage>): Promise<ChatMessage | undefined>;
+  deleteChatMessage(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -695,6 +735,102 @@ export class DatabaseStorage implements IStorage {
   
   async deleteReview(id: number): Promise<boolean> {
     await db.delete(reviews).where(eq(reviews.id, id));
+    return true;
+  }
+  
+  // Support Tickets
+  async getAllSupportTickets(): Promise<SupportTicket[]> {
+    return db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
+  }
+  
+  async getSupportTicketsByStatus(status: string): Promise<SupportTicket[]> {
+    return db.select().from(supportTickets).where(eq(supportTickets.status, status)).orderBy(desc(supportTickets.createdAt));
+  }
+  
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    const [created] = await db.insert(supportTickets).values(ticket).returning();
+    return created;
+  }
+  
+  async updateSupportTicket(id: number, updates: Partial<SupportTicket>): Promise<SupportTicket | undefined> {
+    const [updated] = await db.update(supportTickets).set({ ...updates, updatedAt: new Date() }).where(eq(supportTickets.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteSupportTicket(id: number): Promise<boolean> {
+    await db.delete(supportTickets).where(eq(supportTickets.id, id));
+    return true;
+  }
+  
+  // User Complaints
+  async getAllUserComplaints(): Promise<UserComplaint[]> {
+    return db.select().from(userComplaints).orderBy(desc(userComplaints.createdAt));
+  }
+  
+  async getUserComplaintsByStatus(status: string): Promise<UserComplaint[]> {
+    return db.select().from(userComplaints).where(eq(userComplaints.status, status)).orderBy(desc(userComplaints.createdAt));
+  }
+  
+  async createUserComplaint(complaint: InsertUserComplaint): Promise<UserComplaint> {
+    const [created] = await db.insert(userComplaints).values(complaint).returning();
+    return created;
+  }
+  
+  async updateUserComplaint(id: number, updates: Partial<UserComplaint>): Promise<UserComplaint | undefined> {
+    const [updated] = await db.update(userComplaints).set(updates).where(eq(userComplaints.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteUserComplaint(id: number): Promise<boolean> {
+    await db.delete(userComplaints).where(eq(userComplaints.id, id));
+    return true;
+  }
+  
+  // Reported Users
+  async getAllReportedUsers(): Promise<ReportedUser[]> {
+    return db.select().from(reportedUsers).orderBy(desc(reportedUsers.createdAt));
+  }
+  
+  async getReportedUsersByStatus(status: string): Promise<ReportedUser[]> {
+    return db.select().from(reportedUsers).where(eq(reportedUsers.status, status)).orderBy(desc(reportedUsers.createdAt));
+  }
+  
+  async createReportedUser(report: InsertReportedUser): Promise<ReportedUser> {
+    const [created] = await db.insert(reportedUsers).values(report).returning();
+    return created;
+  }
+  
+  async updateReportedUser(id: number, updates: Partial<ReportedUser>): Promise<ReportedUser | undefined> {
+    const [updated] = await db.update(reportedUsers).set(updates).where(eq(reportedUsers.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteReportedUser(id: number): Promise<boolean> {
+    await db.delete(reportedUsers).where(eq(reportedUsers.id, id));
+    return true;
+  }
+  
+  // Chat Messages
+  async getAllChatMessages(): Promise<ChatMessage[]> {
+    return db.select().from(chatMessages).orderBy(desc(chatMessages.createdAt));
+  }
+  
+  async getFlaggedChatMessages(): Promise<ChatMessage[]> {
+    return db.select().from(chatMessages).where(eq(chatMessages.isFlagged, true)).orderBy(desc(chatMessages.flaggedAt));
+  }
+  
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [created] = await db.insert(chatMessages).values(message).returning();
+    return created;
+  }
+  
+  async updateChatMessage(id: number, updates: Partial<ChatMessage>): Promise<ChatMessage | undefined> {
+    const [updated] = await db.update(chatMessages).set(updates).where(eq(chatMessages.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteChatMessage(id: number): Promise<boolean> {
+    await db.delete(chatMessages).where(eq(chatMessages.id, id));
     return true;
   }
 }
