@@ -713,6 +713,134 @@ export async function registerRoutes(
     }
   });
 
+  // ============= PUSH NOTIFICATIONS ROUTES =============
+  
+  app.get("/api/push-notifications", async (req, res) => {
+    try {
+      const notifications = await storage.getAllPushNotifications();
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/push-notifications", async (req, res) => {
+    try {
+      const notification = await storage.createPushNotification(req.body);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/push-notifications/:id", async (req, res) => {
+    try {
+      const notification = await storage.updatePushNotification(parseInt(req.params.id), req.body);
+      if (!notification) return res.status(404).json({ error: "Notification not found" });
+      res.json(notification);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= SMS LOGS ROUTES =============
+  
+  app.get("/api/sms-logs", async (req, res) => {
+    try {
+      const logs = await storage.getAllSmsLogs();
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/sms-logs", async (req, res) => {
+    try {
+      const log = await storage.createSmsLog(req.body);
+      res.json(log);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ============= EMAIL BROADCASTS ROUTES =============
+  
+  app.get("/api/email-broadcasts", async (req, res) => {
+    try {
+      const broadcasts = await storage.getAllEmailBroadcasts();
+      res.json(broadcasts);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/email-broadcasts", async (req, res) => {
+    try {
+      const broadcast = await storage.createEmailBroadcast(req.body);
+      res.json(broadcast);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/email-broadcasts/:id", async (req, res) => {
+    try {
+      const broadcast = await storage.updateEmailBroadcast(parseInt(req.params.id), req.body);
+      if (!broadcast) return res.status(404).json({ error: "Broadcast not found" });
+      res.json(broadcast);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/email-broadcasts/:id", async (req, res) => {
+    try {
+      await storage.deleteEmailBroadcast(parseInt(req.params.id));
+      res.json({ message: "Broadcast deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= ANNOUNCEMENTS ROUTES =============
+  
+  app.get("/api/announcements", async (req, res) => {
+    try {
+      const allAnnouncements = await storage.getAllAnnouncements();
+      res.json(allAnnouncements);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/announcements", async (req, res) => {
+    try {
+      const announcement = await storage.createAnnouncement(req.body);
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/announcements/:id", async (req, res) => {
+    try {
+      const announcement = await storage.updateAnnouncement(parseInt(req.params.id), req.body);
+      if (!announcement) return res.status(404).json({ error: "Announcement not found" });
+      res.json(announcement);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/announcements/:id", async (req, res) => {
+    try {
+      await storage.deleteAnnouncement(parseInt(req.params.id));
+      res.json({ message: "Announcement deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= WORKER DOCUMENTS ROUTES =============
   
   app.get("/api/worker-documents", async (req, res) => {

@@ -40,6 +40,10 @@ import AdminWorkerVerification from "@/pages/admin/WorkerVerification";
 import AdminActivityLogs from "@/pages/admin/ActivityLogs";
 import AdminLoginLogs from "@/pages/admin/LoginLogs";
 import AdminTwoFactorSettings from "@/pages/admin/TwoFactorSettings";
+import AdminPushNotifications from "@/pages/admin/PushNotifications";
+import AdminSmsNotifications from "@/pages/admin/SmsNotifications";
+import AdminEmailBroadcast from "@/pages/admin/EmailBroadcast";
+import AdminAnnouncements from "@/pages/admin/Announcements";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -115,6 +119,18 @@ function Router() {
       </Route>
       <Route path="/admin/2fa-settings">
         <AdminRoute component={AdminTwoFactorSettings} />
+      </Route>
+      <Route path="/admin/push-notifications">
+        <AdminRoute component={AdminPushNotifications} />
+      </Route>
+      <Route path="/admin/sms-notifications">
+        <AdminRoute component={AdminSmsNotifications} />
+      </Route>
+      <Route path="/admin/email-broadcast">
+        <AdminRoute component={AdminEmailBroadcast} />
+      </Route>
+      <Route path="/admin/announcements">
+        <AdminRoute component={AdminAnnouncements} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}

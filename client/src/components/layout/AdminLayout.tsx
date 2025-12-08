@@ -21,7 +21,10 @@ import {
   FileCheck,
   Activity,
   LogIn,
-  Shield
+  Shield,
+  MessageSquare,
+  Mail,
+  Megaphone
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -44,7 +47,10 @@ const NAV_ITEMS = [
   { icon: ShoppingBag, label: "Orders", path: "/admin/orders" },
   { icon: CreditCard, label: "Finance", path: "/admin/finance" },
   { icon: Tag, label: "Offers", path: "/admin/offers" },
-  { icon: Bell, label: "Notifications", path: "/admin/notifications" },
+  { icon: Bell, label: "Push Notifications", path: "/admin/push-notifications" },
+  { icon: MessageSquare, label: "SMS Notifications", path: "/admin/sms-notifications" },
+  { icon: Mail, label: "Email Broadcast", path: "/admin/email-broadcast" },
+  { icon: Megaphone, label: "Announcements", path: "/admin/announcements" },
   { icon: AlertCircle, label: "Disputes", path: "/admin/disputes" },
   { icon: Activity, label: "Activity Logs", path: "/admin/activity-logs" },
   { icon: LogIn, label: "Login Logs", path: "/admin/login-logs" },

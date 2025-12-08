@@ -55,6 +55,18 @@ import {
   type InsertLoginEvent,
   type UserSecuritySetting,
   type InsertUserSecuritySetting,
+  pushNotifications,
+  smsLogs,
+  emailBroadcasts,
+  announcements,
+  type PushNotification,
+  type InsertPushNotification,
+  type SmsLog,
+  type InsertSmsLog,
+  type EmailBroadcast,
+  type InsertEmailBroadcast,
+  type Announcement,
+  type InsertAnnouncement,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -156,6 +168,28 @@ export interface IStorage {
   // User Security Settings
   getUserSecuritySettings(userId: number): Promise<UserSecuritySetting | undefined>;
   upsertUserSecuritySettings(settings: InsertUserSecuritySetting): Promise<UserSecuritySetting>;
+  
+  // Push Notifications
+  getAllPushNotifications(): Promise<PushNotification[]>;
+  createPushNotification(notification: InsertPushNotification): Promise<PushNotification>;
+  updatePushNotification(id: number, updates: Partial<PushNotification>): Promise<PushNotification | undefined>;
+  
+  // SMS Logs
+  getAllSmsLogs(): Promise<SmsLog[]>;
+  createSmsLog(log: InsertSmsLog): Promise<SmsLog>;
+  updateSmsLog(id: number, updates: Partial<SmsLog>): Promise<SmsLog | undefined>;
+  
+  // Email Broadcasts
+  getAllEmailBroadcasts(): Promise<EmailBroadcast[]>;
+  createEmailBroadcast(broadcast: InsertEmailBroadcast): Promise<EmailBroadcast>;
+  updateEmailBroadcast(id: number, updates: Partial<EmailBroadcast>): Promise<EmailBroadcast | undefined>;
+  deleteEmailBroadcast(id: number): Promise<boolean>;
+  
+  // Announcements
+  getAllAnnouncements(): Promise<Announcement[]>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  updateAnnouncement(id: number, updates: Partial<Announcement>): Promise<Announcement | undefined>;
+  deleteAnnouncement(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -548,6 +582,76 @@ export class DatabaseStorage implements IStorage {
     }
     const [created] = await db.insert(userSecuritySettings).values(settings).returning();
     return created;
+  }
+  
+  // Push Notifications
+  async getAllPushNotifications(): Promise<PushNotification[]> {
+    return db.select().from(pushNotifications).orderBy(desc(pushNotifications.createdAt));
+  }
+  
+  async createPushNotification(notification: InsertPushNotification): Promise<PushNotification> {
+    const [created] = await db.insert(pushNotifications).values(notification).returning();
+    return created;
+  }
+  
+  async updatePushNotification(id: number, updates: Partial<PushNotification>): Promise<PushNotification | undefined> {
+    const [updated] = await db.update(pushNotifications).set(updates).where(eq(pushNotifications.id, id)).returning();
+    return updated;
+  }
+  
+  // SMS Logs
+  async getAllSmsLogs(): Promise<SmsLog[]> {
+    return db.select().from(smsLogs).orderBy(desc(smsLogs.createdAt));
+  }
+  
+  async createSmsLog(log: InsertSmsLog): Promise<SmsLog> {
+    const [created] = await db.insert(smsLogs).values(log).returning();
+    return created;
+  }
+  
+  async updateSmsLog(id: number, updates: Partial<SmsLog>): Promise<SmsLog | undefined> {
+    const [updated] = await db.update(smsLogs).set(updates).where(eq(smsLogs.id, id)).returning();
+    return updated;
+  }
+  
+  // Email Broadcasts
+  async getAllEmailBroadcasts(): Promise<EmailBroadcast[]> {
+    return db.select().from(emailBroadcasts).orderBy(desc(emailBroadcasts.createdAt));
+  }
+  
+  async createEmailBroadcast(broadcast: InsertEmailBroadcast): Promise<EmailBroadcast> {
+    const [created] = await db.insert(emailBroadcasts).values(broadcast).returning();
+    return created;
+  }
+  
+  async updateEmailBroadcast(id: number, updates: Partial<EmailBroadcast>): Promise<EmailBroadcast | undefined> {
+    const [updated] = await db.update(emailBroadcasts).set(updates).where(eq(emailBroadcasts.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteEmailBroadcast(id: number): Promise<boolean> {
+    await db.delete(emailBroadcasts).where(eq(emailBroadcasts.id, id));
+    return true;
+  }
+  
+  // Announcements
+  async getAllAnnouncements(): Promise<Announcement[]> {
+    return db.select().from(announcements).orderBy(desc(announcements.createdAt));
+  }
+  
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+    const [created] = await db.insert(announcements).values(announcement).returning();
+    return created;
+  }
+  
+  async updateAnnouncement(id: number, updates: Partial<Announcement>): Promise<Announcement | undefined> {
+    const [updated] = await db.update(announcements).set(updates).where(eq(announcements.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteAnnouncement(id: number): Promise<boolean> {
+    await db.delete(announcements).where(eq(announcements.id, id));
+    return true;
   }
 }
 

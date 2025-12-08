@@ -339,3 +339,83 @@ export const userSecuritySettings = pgTable("user_security_settings", {
 export const insertUserSecuritySettingSchema = createInsertSchema(userSecuritySettings);
 export type InsertUserSecuritySetting = z.infer<typeof insertUserSecuritySettingSchema>;
 export type UserSecuritySetting = typeof userSecuritySettings.$inferSelect;
+
+// Push Notifications Table
+export const pushNotifications = pgTable("push_notifications", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  targetAudience: text("target_audience").notNull(), // all, customers, workers, specific
+  targetUserIds: text("target_user_ids"), // JSON array for specific users
+  status: text("status").notNull().default("pending"), // pending, sent, failed
+  sentCount: integer("sent_count").default(0),
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPushNotificationSchema = createInsertSchema(pushNotifications).omit({ id: true, createdAt: true });
+export type InsertPushNotification = z.infer<typeof insertPushNotificationSchema>;
+export type PushNotification = typeof pushNotifications.$inferSelect;
+
+// SMS Logs Table
+export const smsLogs = pgTable("sms_logs", {
+  id: serial("id").primaryKey(),
+  recipientPhone: text("recipient_phone").notNull(),
+  recipientName: text("recipient_name"),
+  message: text("message").notNull(),
+  templateId: text("template_id"),
+  status: text("status").notNull().default("pending"), // pending, sent, delivered, failed
+  provider: text("provider"), // twilio, 2factor
+  providerMessageId: text("provider_message_id"),
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSmsLogSchema = createInsertSchema(smsLogs).omit({ id: true, createdAt: true });
+export type InsertSmsLog = z.infer<typeof insertSmsLogSchema>;
+export type SmsLog = typeof smsLogs.$inferSelect;
+
+// Email Broadcasts Table
+export const emailBroadcasts = pgTable("email_broadcasts", {
+  id: serial("id").primaryKey(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  targetAudience: text("target_audience").notNull(), // all, customers, workers, specific
+  targetEmails: text("target_emails"), // JSON array for specific emails
+  status: text("status").notNull().default("draft"), // draft, scheduled, sending, sent, failed
+  sentCount: integer("sent_count").default(0),
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertEmailBroadcastSchema = createInsertSchema(emailBroadcasts).omit({ id: true, createdAt: true });
+export type InsertEmailBroadcast = z.infer<typeof insertEmailBroadcastSchema>;
+export type EmailBroadcast = typeof emailBroadcasts.$inferSelect;
+
+// In-App Announcements Table
+export const announcements = pgTable("announcements", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull().default("info"), // info, warning, promo, update
+  targetAudience: text("target_audience").notNull(), // all, customers, workers
+  imageUrl: text("image_url"),
+  actionUrl: text("action_url"),
+  actionLabel: text("action_label"),
+  priority: integer("priority").default(0),
+  isActive: boolean("is_active").default(true).notNull(),
+  startsAt: timestamp("starts_at"),
+  expiresAt: timestamp("expires_at"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAnnouncementSchema = createInsertSchema(announcements).omit({ id: true, createdAt: true });
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type Announcement = typeof announcements.$inferSelect;
