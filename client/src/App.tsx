@@ -18,6 +18,12 @@ import AdminDashboard from "@/pages/admin/Dashboard";
 import AdminServices from "@/pages/admin/Services";
 import AdminWorkers from "@/pages/admin/Workers";
 import AdminOrders from "@/pages/admin/Orders";
+import AdminCustomers from "@/pages/admin/Customers";
+import AdminFinance from "@/pages/admin/Finance";
+import AdminOffers from "@/pages/admin/Offers";
+import AdminNotifications from "@/pages/admin/Notifications";
+import AdminDisputes from "@/pages/admin/Disputes";
+import AdminSettings from "@/pages/admin/Settings";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -55,6 +61,24 @@ function Router() {
       </Route>
       <Route path="/admin/orders">
         <AdminRoute component={AdminOrders} />
+      </Route>
+      <Route path="/admin/customers">
+        <AdminRoute component={AdminCustomers} />
+      </Route>
+      <Route path="/admin/finance">
+        <AdminRoute component={AdminFinance} />
+      </Route>
+      <Route path="/admin/offers">
+        <AdminRoute component={AdminOffers} />
+      </Route>
+      <Route path="/admin/notifications">
+        <AdminRoute component={AdminNotifications} />
+      </Route>
+      <Route path="/admin/disputes">
+        <AdminRoute component={AdminDisputes} />
+      </Route>
+      <Route path="/admin/settings">
+        <AdminRoute component={AdminSettings} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
