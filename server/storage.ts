@@ -13,6 +13,8 @@ import {
   transactions,
   payouts,
   refunds,
+  coupons,
+  disputes,
   type User,
   type InsertUser,
   type CustomerDetails,
@@ -37,6 +39,10 @@ import {
   type InsertPayout,
   type Refund,
   type InsertRefund,
+  type Coupon,
+  type InsertCoupon,
+  type Dispute,
+  type InsertDispute,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -108,6 +114,18 @@ export interface IStorage {
   getAllRefunds(): Promise<Refund[]>;
   createRefund(refund: InsertRefund): Promise<Refund>;
   updateRefund(id: number, updates: Partial<Refund>): Promise<Refund | undefined>;
+  
+  // Coupons
+  getAllCoupons(): Promise<Coupon[]>;
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  updateCoupon(id: number, updates: Partial<Coupon>): Promise<Coupon | undefined>;
+  deleteCoupon(id: number): Promise<boolean>;
+  
+  // Disputes
+  getAllDisputes(): Promise<Dispute[]>;
+  createDispute(dispute: InsertDispute): Promise<Dispute>;
+  updateDispute(id: number, updates: Partial<Dispute>): Promise<Dispute | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -402,6 +420,46 @@ export class DatabaseStorage implements IStorage {
   async updateRefund(id: number, updates: Partial<Refund>): Promise<Refund | undefined> {
     const [refund] = await db.update(refunds).set(updates).where(eq(refunds.id, id)).returning();
     return refund;
+  }
+  
+  // Coupons
+  async getAllCoupons(): Promise<Coupon[]> {
+    return db.select().from(coupons).orderBy(desc(coupons.createdAt));
+  }
+  
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, code));
+    return coupon;
+  }
+  
+  async createCoupon(insertCoupon: InsertCoupon): Promise<Coupon> {
+    const [coupon] = await db.insert(coupons).values(insertCoupon).returning();
+    return coupon;
+  }
+  
+  async updateCoupon(id: number, updates: Partial<Coupon>): Promise<Coupon | undefined> {
+    const [coupon] = await db.update(coupons).set(updates).where(eq(coupons.id, id)).returning();
+    return coupon;
+  }
+  
+  async deleteCoupon(id: number): Promise<boolean> {
+    await db.delete(coupons).where(eq(coupons.id, id));
+    return true;
+  }
+  
+  // Disputes
+  async getAllDisputes(): Promise<Dispute[]> {
+    return db.select().from(disputes).orderBy(desc(disputes.createdAt));
+  }
+  
+  async createDispute(insertDispute: InsertDispute): Promise<Dispute> {
+    const [dispute] = await db.insert(disputes).values(insertDispute).returning();
+    return dispute;
+  }
+  
+  async updateDispute(id: number, updates: Partial<Dispute>): Promise<Dispute | undefined> {
+    const [dispute] = await db.update(disputes).set(updates).where(eq(disputes.id, id)).returning();
+    return dispute;
   }
 }
 

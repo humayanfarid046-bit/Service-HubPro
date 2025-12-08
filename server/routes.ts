@@ -713,6 +713,76 @@ export async function registerRoutes(
     }
   });
 
+  // ============= COUPON ROUTES =============
+  
+  app.get("/api/coupons", async (req, res) => {
+    try {
+      const allCoupons = await storage.getAllCoupons();
+      res.json(allCoupons);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/coupons", async (req, res) => {
+    try {
+      const coupon = await storage.createCoupon(req.body);
+      res.json(coupon);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/coupons/:id", async (req, res) => {
+    try {
+      const coupon = await storage.updateCoupon(parseInt(req.params.id), req.body);
+      if (!coupon) return res.status(404).json({ error: "Coupon not found" });
+      res.json(coupon);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/coupons/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteCoupon(parseInt(req.params.id));
+      if (!deleted) return res.status(404).json({ error: "Coupon not found" });
+      res.json({ message: "Coupon deleted" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= DISPUTE ROUTES =============
+  
+  app.get("/api/disputes", async (req, res) => {
+    try {
+      const allDisputes = await storage.getAllDisputes();
+      res.json(allDisputes);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/disputes", async (req, res) => {
+    try {
+      const dispute = await storage.createDispute(req.body);
+      res.json(dispute);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/disputes/:id", async (req, res) => {
+    try {
+      const dispute = await storage.updateDispute(parseInt(req.params.id), req.body);
+      if (!dispute) return res.status(404).json({ error: "Dispute not found" });
+      res.json(dispute);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Hidden admin setup (for initial admin creation)
   app.post("/api/setup/admin", async (req, res) => {
     try {

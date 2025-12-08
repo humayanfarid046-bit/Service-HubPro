@@ -225,3 +225,46 @@ export const refunds = pgTable("refunds", {
 export const insertRefundSchema = createInsertSchema(refunds).omit({ id: true, requestedAt: true });
 export type InsertRefund = z.infer<typeof insertRefundSchema>;
 export type Refund = typeof refunds.$inferSelect;
+
+// Coupons/Offers Table
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  discountType: text("discount_type").notNull(), // percentage, flat
+  discountValue: numeric("discount_value", { precision: 10, scale: 2 }).notNull(),
+  minOrderAmount: numeric("min_order_amount", { precision: 10, scale: 2 }),
+  maxDiscount: numeric("max_discount", { precision: 10, scale: 2 }),
+  description: text("description"),
+  validFrom: timestamp("valid_from"),
+  validTo: timestamp("valid_to"),
+  usageLimit: integer("usage_limit"),
+  usedCount: integer("used_count").default(0),
+  isActive: boolean("is_active").default(true).notNull(),
+  applicableTo: text("applicable_to"), // all, new_users, specific_services
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, createdAt: true, usedCount: true });
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type Coupon = typeof coupons.$inferSelect;
+
+// Disputes/Support Tickets Table
+export const disputes = pgTable("disputes", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  customerId: integer("customer_id").notNull().references(() => users.id),
+  workerId: integer("worker_id").references(() => users.id),
+  type: text("type").notNull(), // quality, delay, payment, behavior, other
+  priority: text("priority").default("medium"), // low, medium, high
+  status: text("status").notNull().default("open"), // open, in_progress, resolved, closed
+  subject: text("subject").notNull(),
+  description: text("description"),
+  resolution: text("resolution"),
+  resolvedBy: integer("resolved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+export const insertDisputeSchema = createInsertSchema(disputes).omit({ id: true, createdAt: true });
+export type InsertDispute = z.infer<typeof insertDisputeSchema>;
+export type Dispute = typeof disputes.$inferSelect;
