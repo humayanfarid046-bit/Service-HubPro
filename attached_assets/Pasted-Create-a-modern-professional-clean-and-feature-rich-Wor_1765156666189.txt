@@ -1,0 +1,104 @@
+Create a modern, professional, clean, and feature-rich Worker Panel Dashboard for the “ServiceHub Pro” home-service platform.
+
+The dashboard should NOT be minimal — it must be powerful, data-rich, beautifully designed, and optimized for professional service workers. It must look premium, with well-organized sections, attractive cards, clean typography, rounded corners, and a high-quality layout.
+
+-----------------------------------------------
+WORKER DASHBOARD – CORE WIDGETS & INFO
+-----------------------------------------------
+Include the following major dashboard sections:
+
+1. Worker Header Section:
+   • Worker name & profile photo
+   • Rating score (stars + number)
+   • Online/Offline toggle button
+   • Quick stats bar (Today’s Jobs | Pending Jobs | Earnings)
+
+2. Earnings Summary (Premium Cards)
+   • Today’s earnings
+   • Weekly earnings
+   • Monthly earnings
+   • Total payouts
+   • Pending payouts
+   • Graph showing earning trend (7 days or monthly)
+
+3. Job Overview Cards:
+   • New Requests (with count)
+   • Accepted Jobs
+   • On the Way Jobs
+   • Ongoing/Working Jobs
+   • Completed Jobs
+   • Cancelled Jobs
+   • Each card should be interactive, clickable.
+
+4. Upcoming Jobs Timeline:
+   • List of upcoming bookings with:
+       - Service name
+       - Customer name
+       - Address
+       - Time countdown
+       - Price
+       - Status badge
+
+5. Real-Time Job Tracker:
+   • Live map preview (optional)
+   • Current job status panel:
+       - Pending → Accepted → On the Way → Working → Completed
+   • Button to update job state
+   • Customer contact + message button
+
+6. New Job Requests Section:
+   • Incoming job requests with:
+       - Customer details
+       - Location (map)
+       - Service & price breakdown
+       - Accept / Reject buttons in clean UI
+
+7. Performance & Ratings Section:
+   • Overall rating
+   • Rating chart
+   • Recent customer reviews
+   • Performance score meter
+
+8. Finance Panel:
+   • Payout request button
+   • Payout history list
+   • Transaction logs
+   • Earnings breakdown by category/service
+
+9. Quick Actions Bar:
+   • Start navigation
+   • Mark as arrived
+   • Contact customer
+   • View service instructions
+
+10. Notifications Panel:
+   • New job alerts
+   • Payment alerts
+   • Admin announcements
+   • System messages
+
+11. Profile & KYC Status Section:
+   • Worker details
+   • Service categories
+   • Skills list
+   • Experience level
+   • KYC status card (Pending / Verified / Rejected)
+   • Upload documents button
+
+-----------------------------------------------
+UI STYLE REQUIREMENTS
+-----------------------------------------------
+• Premium, modern mobile dashboard design
+• Card-based layout with 20–30px rounded corners
+• Soft shadows & smooth gradients
+• Clean typography (large headings, bold stats)
+• Light mode interface with soft grey background
+• Spacing & padding should feel luxurious
+• Subtle micro-animations & interactions
+• Use icons for every feature (jobs, earnings, reviews, notifications)
+• Layout must feel like a powerful work tool, not a minimal app
+
+-----------------------------------------------
+DELIVERABLE
+-----------------------------------------------
+A fully designed, data-rich, modern Worker Dashboard that feels professional, enterprise-grade, and visually beautiful — with analytics, earnings, job management, real-time updates, performance insights, and quick actions.
