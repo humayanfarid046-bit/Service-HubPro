@@ -46,7 +46,7 @@ export default function AuthPage() {
     }
   };
 
-  const handlePhoneSubmit = () => {
+  const handlePhoneSubmit = async () => {
     if (phone.length < 4) {
       toast({ title: "Invalid Phone", description: "Please enter a valid phone number.", variant: "destructive" });
       return;
@@ -54,53 +54,76 @@ export default function AuthPage() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      
+      const data = await response.json();
       setIsLoading(false);
       
-      // Admin Logic (Hidden) - Only works in Login mode
-      if (phone === "99999") {
-        login("ADMIN");
-        setLocation("/admin/dashboard");
-        return;
+      if (data.exists && data.user) {
+        const userRole = data.user.role;
+        
+        if (userRole === "ADMIN") {
+          login("ADMIN", data.user);
+          setLocation("/admin/dashboard");
+          return;
+        }
+        
+        setStep("otp");
+      } else {
+        toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
+        setAuthMode("register");
+        setView("register_role");
       }
-
-      setStep("otp");
-    }, 1500);
+    } catch (error) {
+      setIsLoading(false);
+      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
+    }
   };
 
-  const verifyOtp = () => {
+  const verifyOtp = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-        setIsLoading(false);
-        if (otp !== "1234") { 
-            toast({ title: "Invalid OTP", description: "Use 1234 for testing.", variant: "destructive" });
-            return;
-        }
+    
+    if (otp !== "1234") { 
+      setIsLoading(false);
+      toast({ title: "Invalid OTP", description: "Use 1234 for testing.", variant: "destructive" });
+      return;
+    }
 
-        // Logic
-        if (authMode === "login") {
-            // Mock login logic based on phone
-            if (phone === "88888") {
-                login("WORKER");
-                setLocation("/worker/dashboard");
-            } else if (phone === "77777") {
-                login("CUSTOMER");
-                setLocation("/customer/home");
-            } else {
-                // Default fallback if not a known mock user
-                toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
-                setAuthMode("register");
-                setView("register_role");
-            }
+    try {
+      const response = await fetch("/api/auth/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      
+      const data = await response.json();
+      setIsLoading(false);
+      
+      if (data.exists && data.user) {
+        const userRole = data.user.role as "ADMIN" | "WORKER" | "CUSTOMER";
+        login(userRole, data.user);
+        
+        if (userRole === "ADMIN") {
+          setLocation("/admin/dashboard");
+        } else if (userRole === "WORKER") {
+          setLocation("/worker/dashboard");
         } else {
-            // Registration Logic (Fallback for Worker currently)
-            if (selectedRole) {
-                login(selectedRole);
-                if (selectedRole === "WORKER") setLocation("/worker/dashboard");
-                else setLocation("/customer/home");
-            }
+          setLocation("/customer/home");
         }
-    }, 1000);
+      } else {
+        toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
+        setAuthMode("register");
+        setView("register_role");
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast({ title: "Error", description: "Something went wrong.", variant: "destructive" });
+    }
   };
 
   return (
