@@ -1,13 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, CreditCard, ShieldCheck, Star, LogOut, FileText } from "lucide-react";
+import { User, MapPin, CreditCard, ShieldCheck, Star, LogOut, FileText, Briefcase, Calendar, Clock, Globe, Bell } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useLocation } from "wouter";
+import { Switch } from "@/components/ui/switch";
 
 export default function WorkerProfile() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+
+  const MenuLink = ({ icon: Icon, label, subLabel, onClick }: any) => (
+      <button onClick={onClick} className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left">
+          <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500">
+                  <Icon className="w-4 h-4" />
+              </div>
+              <div>
+                  <p className="font-medium text-slate-900 text-sm">{label}</p>
+                  {subLabel && <p className="text-xs text-slate-400">{subLabel}</p>}
+              </div>
+          </div>
+      </button>
+  );
 
   return (
     <div className="pb-20 bg-slate-50 min-h-full">
@@ -46,48 +61,48 @@ export default function WorkerProfile() {
             </div>
         </div>
 
-        {/* Menu */}
+        {/* Profile Settings */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="p-4 border-b border-slate-50">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Personal Details</p>
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <User className="w-5 h-5 text-slate-400" />
-                        <div>
-                            <p className="text-xs text-slate-500">Full Name</p>
-                            <p className="text-sm font-medium text-slate-900">{user?.name}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <MapPin className="w-5 h-5 text-slate-400" />
-                        <div>
-                            <p className="text-xs text-slate-500">Service Area</p>
-                            <p className="text-sm font-medium text-slate-900">New York, USA</p>
-                        </div>
-                    </div>
-                </div>
+            <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Profile & Work</p>
             </div>
+            <MenuLink icon={User} label="Edit Profile" subLabel="Personal details, photo" />
+            <MenuLink icon={MapPin} label="Work Address" subLabel="Service area location" />
+            <MenuLink icon={Briefcase} label="Skills & Services" subLabel="AC Repair, Installation" />
+            <MenuLink icon={Calendar} label="Availability Schedule" subLabel="Mon-Fri, 9AM - 6PM" />
+        </div>
 
-            <div className="p-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Payout Details</p>
-                 <div className="flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 text-slate-400" />
-                    <div>
-                        <p className="text-xs text-slate-500">Bank Account</p>
-                        <p className="text-sm font-medium text-slate-900">**** **** **** 1234</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-auto text-primary text-xs">Edit</Button>
-                </div>
+        {/* Finance & App Settings */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Finance & Settings</p>
             </div>
+             <MenuLink icon={CreditCard} label="Bank / UPI Details" subLabel="**** 1234" />
+             <MenuLink icon={FileText} label="KYC Documents" subLabel="ID Card, Certificates" />
+             <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                 <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500">
+                        <Bell className="w-4 h-4" />
+                    </div>
+                    <span className="font-medium text-slate-900 text-sm">Notifications</span>
+                 </div>
+                 <Switch defaultChecked />
+             </div>
+             <div className="flex items-center justify-between p-4 border-b border-slate-50">
+                 <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500">
+                        <Globe className="w-4 h-4" />
+                    </div>
+                    <span className="font-medium text-slate-900 text-sm">Language</span>
+                 </div>
+                 <span className="text-xs text-slate-500">English</span>
+             </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
-             <Button variant="outline" className="h-12 border-slate-200 text-slate-600">
-                <FileText className="w-4 h-4 mr-2" /> Terms
-             </Button>
+        <div className="grid grid-cols-1 gap-4">
              <Button 
                 variant="outline" 
-                className="h-12 border-red-100 text-red-600 hover:bg-red-50"
+                className="h-12 border-red-100 text-red-600 hover:bg-red-50 bg-white"
                 onClick={() => {
                     logout();
                     setLocation("/auth");
@@ -95,6 +110,7 @@ export default function WorkerProfile() {
             >
                 <LogOut className="w-4 h-4 mr-2" /> Logout
              </Button>
+             <p className="text-center text-xs text-slate-400">Version 2.1.0 • ServiceHub Pro</p>
         </div>
       </div>
     </div>

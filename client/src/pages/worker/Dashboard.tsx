@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MapPin, Navigation, Clock, CheckCircle2, DollarSign, 
   TrendingUp, Star, Bell, ShieldCheck, FileText, ChevronRight,
-  Briefcase, Wallet, Users, AlertCircle
+  Briefcase, Wallet, Users, AlertCircle, LayoutGrid
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
@@ -28,6 +28,13 @@ const REVIEWS = [
   { id: 2, user: "Bob Jones", rating: 4, text: "Good work but arrived a bit late.", date: "1 week ago" },
 ];
 
+const MINI_MENU_ITEMS = [
+    { icon: Bell, label: "Alerts", color: "text-blue-600", bg: "bg-blue-50" },
+    { icon: FileText, label: "Docs", color: "text-purple-600", bg: "bg-purple-50" },
+    { icon: Wallet, label: "Payouts", color: "text-emerald-600", bg: "bg-emerald-50" },
+    { icon: Star, label: "Ratings", color: "text-yellow-600", bg: "bg-yellow-50" },
+];
+
 export default function WorkerDashboard() {
   const { user } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
@@ -44,12 +51,12 @@ export default function WorkerDashboard() {
   return (
     <div className="pb-24 bg-slate-50 min-h-full font-sans">
       {/* 1. Worker Header Section */}
-      <div className="bg-slate-900 text-white pt-8 pb-24 px-6 rounded-b-[2.5rem] relative overflow-hidden shadow-2xl shadow-slate-900/20">
+      <div className="bg-slate-900 text-white pt-12 pb-24 px-6 rounded-b-[2.5rem] relative overflow-hidden shadow-2xl shadow-slate-900/20">
         <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
             <Briefcase className="w-64 h-64" />
         </div>
         
-        <div className="flex justify-between items-start mb-8 relative z-10">
+        <div className="flex justify-between items-start mb-8 relative z-10 pl-8"> {/* Added pl-8 to account for menu button */}
             <div className="flex items-center gap-4">
                 <div className="relative">
                     <img 
@@ -103,6 +110,18 @@ export default function WorkerDashboard() {
 
       <div className="px-5 -mt-16 relative z-20 space-y-8">
         
+        {/* 5. Dashboard Mini Menu */}
+        <div className="grid grid-cols-4 gap-3">
+             {MINI_MENU_ITEMS.map((item, i) => (
+                <button key={i} className="flex flex-col items-center gap-2 p-2 bg-white rounded-2xl border border-slate-100 shadow-sm hover:scale-105 transition-transform">
+                    <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", item.bg, item.color)}>
+                        <item.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-600">{item.label}</span>
+                </button>
+             ))}
+        </div>
+
         {/* 6. New Job Requests (Priority) */}
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
