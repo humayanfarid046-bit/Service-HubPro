@@ -42,6 +42,8 @@ import {
   Home,
   ChevronDown,
   ChevronRight,
+  Key,
+  Database,
   type LucideIcon
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -167,10 +169,16 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: "Settings",
+    title: "System Settings",
     icon: Settings,
     items: [
-      { icon: Settings, label: "General Settings", path: "/admin/settings" },
+      { icon: Settings, label: "App Settings", path: "/admin/app-settings" },
+      { icon: CreditCard, label: "Payment Gateway", path: "/admin/payment-gateway" },
+      { icon: MessageSquare, label: "SMS Gateway", path: "/admin/sms-gateway" },
+      { icon: Mail, label: "Email SMTP", path: "/admin/email-smtp" },
+      { icon: Shield, label: "Role & Permissions", path: "/admin/role-permissions" },
+      { icon: Key, label: "API Keys", path: "/admin/api-keys" },
+      { icon: Database, label: "Database Backup", path: "/admin/database-backup" },
     ],
   },
 ];

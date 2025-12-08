@@ -61,6 +61,13 @@ import AdminBannerManagement from "@/pages/admin/BannerManagement";
 import AdminHomepageContent from "@/pages/admin/HomepageContent";
 import AdminFAQManager from "@/pages/admin/FAQManager";
 import AdminTermsPolicyEditor from "@/pages/admin/TermsPolicyEditor";
+import AdminAppSettings from "@/pages/admin/AppSettings";
+import AdminPaymentGatewaySettings from "@/pages/admin/PaymentGatewaySettings";
+import AdminSMSGatewaySettings from "@/pages/admin/SMSGatewaySettings";
+import AdminEmailSMTPSettings from "@/pages/admin/EmailSMTPSettings";
+import AdminRolePermissions from "@/pages/admin/RolePermissions";
+import AdminAPIKeysManagement from "@/pages/admin/APIKeysManagement";
+import AdminDatabaseBackup from "@/pages/admin/DatabaseBackup";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -199,6 +206,27 @@ function Router() {
       </Route>
       <Route path="/admin/terms-policy">
         <AdminRoute component={AdminTermsPolicyEditor} />
+      </Route>
+      <Route path="/admin/app-settings">
+        <AdminRoute component={AdminAppSettings} />
+      </Route>
+      <Route path="/admin/payment-gateway">
+        <AdminRoute component={AdminPaymentGatewaySettings} />
+      </Route>
+      <Route path="/admin/sms-gateway">
+        <AdminRoute component={AdminSMSGatewaySettings} />
+      </Route>
+      <Route path="/admin/email-smtp">
+        <AdminRoute component={AdminEmailSMTPSettings} />
+      </Route>
+      <Route path="/admin/role-permissions">
+        <AdminRoute component={AdminRolePermissions} />
+      </Route>
+      <Route path="/admin/api-keys">
+        <AdminRoute component={AdminAPIKeysManagement} />
+      </Route>
+      <Route path="/admin/database-backup">
+        <AdminRoute component={AdminDatabaseBackup} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
