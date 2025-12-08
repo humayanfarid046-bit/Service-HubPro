@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, User, Hammer, ChevronRight, Phone, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldCheck, User, Hammer, ChevronRight, Phone, ArrowLeft, Loader2, Sparkles, LogIn, UserPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -13,13 +13,35 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const [step, setStep] = useState<"phone" | "otp" | "role_select">("phone");
+  // Views: welcome -> login (phone+otp) OR register_role -> login (phone+otp)
+  const [view, setView] = useState<"welcome" | "login" | "register_role">("welcome");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [selectedRole, setSelectedRole] = useState<"CUSTOMER" | "WORKER" | null>(null);
+  
+  // Login State
+  const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [detectedRole, setDetectedRole] = useState<"ADMIN" | "WORKER" | "CUSTOMER" | "NEW" | null>(null);
 
-  const handlePhoneSubmit = (clickedButton: "customer" | "worker") => {
+  const handleStartLogin = () => {
+    setAuthMode("login");
+    setView("login");
+    setStep("phone");
+  };
+
+  const handleStartRegister = () => {
+    setAuthMode("register");
+    setView("register_role");
+  };
+
+  const handleRoleSelect = (role: "CUSTOMER" | "WORKER") => {
+    setSelectedRole(role);
+    setView("login"); // Proceed to phone input after role selection
+    setStep("phone");
+  };
+
+  const handlePhoneSubmit = () => {
     if (phone.length < 4) {
       toast({ title: "Invalid Phone", description: "Please enter a valid phone number.", variant: "destructive" });
       return;
@@ -27,34 +49,17 @@ export default function AuthPage() {
 
     setIsLoading(true);
 
-    // Mock Backend Check
     setTimeout(() => {
       setIsLoading(false);
       
-      // Admin Logic (Hidden)
+      // Admin Logic (Hidden) - Only works in Login mode
       if (phone === "99999") {
         login("ADMIN");
         setLocation("/admin/dashboard");
         return;
       }
 
-      // Existing User Check (Mock)
-      if (phone === "88888") {
-        setDetectedRole("WORKER");
-        setStep("otp");
-        return;
-      }
-      if (phone === "77777") {
-        setDetectedRole("CUSTOMER");
-        setStep("otp");
-        return;
-      }
-
-      // New User -> Role Selection
-      // If they clicked "Worker Partner", maybe we pre-select or just go to selection?
-      // The prompt says: "If the user is new, redirect to a Select Your Role screen."
-      setDetectedRole("NEW");
-      setStep("otp"); // Verify phone first, then select role
+      setStep("otp");
     }, 1500);
   };
 
@@ -62,184 +67,248 @@ export default function AuthPage() {
     setIsLoading(true);
     setTimeout(() => {
         setIsLoading(false);
-        if (otp !== "1234") { // Mock OTP
+        if (otp !== "1234") { 
             toast({ title: "Invalid OTP", description: "Use 1234 for testing.", variant: "destructive" });
             return;
         }
 
-        if (detectedRole === "NEW") {
-            setStep("role_select");
-        } else if (detectedRole) {
-            login(detectedRole as any);
-            if (detectedRole === "WORKER") setLocation("/worker/dashboard");
-            else setLocation("/customer/home");
+        // Logic
+        if (authMode === "login") {
+            // Mock login logic based on phone
+            if (phone === "88888") {
+                login("WORKER");
+                setLocation("/worker/dashboard");
+            } else if (phone === "77777") {
+                login("CUSTOMER");
+                setLocation("/customer/home");
+            } else {
+                // Default fallback if not a known mock user
+                toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
+                setAuthMode("register");
+                setView("register_role");
+            }
+        } else {
+            // Registration Logic
+            if (selectedRole) {
+                login(selectedRole);
+                if (selectedRole === "WORKER") setLocation("/worker/dashboard");
+                else setLocation("/customer/home");
+            }
         }
     }, 1000);
   };
 
-  const handleRegister = (role: "CUSTOMER" | "WORKER") => {
-      login(role);
-      if (role === "WORKER") setLocation("/worker/dashboard");
-      else setLocation("/customer/home");
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 font-sans p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 font-sans p-4 overflow-hidden relative">
+      {/* Background Gradients */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/40 rounded-full blur-[100px]" />
+
       <AnimatePresence mode="wait">
         
-        {/* STEP 1: LOGIN (PHONE) */}
-        {step === "phone" && (
+        {/* SCREEN 1: WELCOME SCREEN */}
+        {view === "welcome" && (
           <motion.div
-            key="phone-step"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="w-full max-w-md"
+            key="welcome"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-sm"
           >
-            <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 p-8 md:p-10 border border-white/50 relative overflow-hidden">
-                {/* Decorative Background */}
-                <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/5 rounded-full blur-3xl" />
-                <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-indigo-500/5 rounded-full blur-3xl" />
-
-                <div className="relative z-10 flex flex-col items-center text-center">
-                    {/* Logo */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-8 relative group">
-                        <div className="absolute inset-0 bg-white/20 rounded-2xl blur-sm group-hover:blur-md transition-all" />
-                        <ShieldCheck className="w-10 h-10 text-white relative z-10" />
+            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/60 p-8 border border-white relative overflow-hidden text-center">
+                <div className="mb-8 relative flex justify-center">
+                    <div className="w-64 h-64 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-full flex items-center justify-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm rounded-full m-4" />
+                        <img 
+                            src="https://images.unsplash.com/photo-1581578731117-10d52143b0d8?q=80&w=1000&auto=format&fit=crop" 
+                            className="w-full h-full object-cover opacity-90 mix-blend-overlay absolute"
+                            alt="Welcome"
+                        />
+                        <Sparkles className="w-16 h-16 text-indigo-500 relative z-10 animate-pulse" />
                     </div>
+                </div>
 
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Welcome Back</h1>
-                    <p className="text-slate-500 mb-8">Enter your phone number to continue</p>
+                <h1 className="text-4xl font-bold text-slate-900 mb-2">Hello</h1>
+                <p className="text-slate-500 mb-10 leading-relaxed px-4">
+                    Welcome to <span className="text-indigo-600 font-bold">ServiceHub Pro</span>, your trusted home service partner.
+                </p>
 
-                    <div className="w-full space-y-6">
-                        <div className="relative group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-2xl blur transition-opacity opacity-0 group-focus-within:opacity-100" />
-                            <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl px-4 py-1 focus-within:bg-white focus-within:border-blue-500 transition-all">
-                                <Phone className="w-5 h-5 text-slate-400 mr-3" />
-                                <div className="h-6 w-px bg-slate-200 mr-3" />
-                                <Input 
-                                    className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-12 text-lg font-medium text-slate-900 placeholder:text-slate-400"
-                                    placeholder="Mobile Number"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    disabled={isLoading}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-3 pt-2">
-                            <Button 
-                                className="w-full h-14 text-lg font-bold rounded-2xl bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all active:scale-[0.98]"
-                                onClick={() => handlePhoneSubmit("customer")}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue as Customer"}
-                            </Button>
-                            
-                            <Button 
-                                variant="ghost"
-                                className="w-full h-12 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl font-medium transition-colors"
-                                onClick={() => handlePhoneSubmit("worker")}
-                                disabled={isLoading}
-                            >
-                                Worker Partner
-                            </Button>
-                        </div>
-                    </div>
-
-                    <p className="text-xs text-slate-400 mt-8">
-                        By continuing, you agree to our <span className="underline cursor-pointer hover:text-slate-600">Terms</span> & <span className="underline cursor-pointer hover:text-slate-600">Privacy Policy</span>
-                    </p>
+                <div className="space-y-4">
+                    <Button 
+                        className="w-full h-14 text-lg font-bold rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
+                        onClick={handleStartRegister}
+                    >
+                        Create New Account
+                    </Button>
+                    <Button 
+                        variant="outline"
+                        className="w-full h-14 text-lg font-bold rounded-[1.5rem] border-2 border-slate-100 hover:bg-white hover:border-indigo-200 text-slate-600 hover:text-indigo-600 transition-all"
+                        onClick={handleStartLogin}
+                    >
+                        Login
+                    </Button>
                 </div>
             </div>
           </motion.div>
         )}
 
-        {/* STEP 2: OTP (Mock) */}
-        {step === "otp" && (
+        {/* SCREEN 2: CHOOSE ACCOUNT TYPE */}
+        {view === "register_role" && (
             <motion.div
-                key="otp-step"
+                key="register_role"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="w-full max-w-md"
+                className="w-full max-w-sm"
             >
-                <div className="bg-white rounded-[2rem] shadow-2xl p-8 border border-white/50 text-center">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Verify OTP</h2>
-                    <p className="text-slate-500 mb-8">Sent to {phone}. Use <span className="font-mono font-bold text-slate-900">1234</span></p>
-                    
-                    <Input 
-                        className="text-center text-3xl font-bold tracking-[1em] h-16 rounded-2xl border-slate-200 bg-slate-50 focus-visible:ring-blue-500 mb-8"
-                        maxLength={4}
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                    />
-
-                    <Button 
-                        className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 font-bold text-lg shadow-lg shadow-blue-500/20"
-                        onClick={verifyOtp}
-                        disabled={isLoading}
+                <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/60 p-8 border border-white relative">
+                    <button 
+                        onClick={() => setView("welcome")}
+                        className="absolute top-6 left-6 p-2 rounded-full hover:bg-slate-100 transition-colors"
                     >
-                         {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify & Continue"}
-                    </Button>
+                        <ArrowLeft className="w-6 h-6 text-slate-400" />
+                    </button>
+                    
+                    <div className="mt-12 mb-8 text-center">
+                        <h2 className="text-3xl font-bold text-slate-900">Register as</h2>
+                        <p className="text-slate-500">Choose your account type</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleRoleSelect("CUSTOMER")}
+                            className="w-full bg-white p-6 rounded-[2rem] shadow-lg shadow-blue-100/50 border border-blue-50 flex items-center gap-4 group transition-all hover:border-blue-200"
+                        >
+                            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <User className="w-7 h-7" />
+                            </div>
+                            <div className="text-left flex-1">
+                                <h3 className="text-lg font-bold text-slate-900">Customer</h3>
+                                <p className="text-xs text-slate-400">I want to book services</p>
+                            </div>
+                            <ChevronRight className="text-slate-300" />
+                        </motion.button>
+
+                        <motion.button 
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleRoleSelect("WORKER")}
+                            className="w-full bg-white p-6 rounded-[2rem] shadow-lg shadow-purple-100/50 border border-purple-50 flex items-center gap-4 group transition-all hover:border-purple-200"
+                        >
+                            <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Hammer className="w-7 h-7" />
+                            </div>
+                            <div className="text-left flex-1">
+                                <h3 className="text-lg font-bold text-slate-900">Worker Partner</h3>
+                                <p className="text-xs text-slate-400">I want to offer services</p>
+                            </div>
+                            <ChevronRight className="text-slate-300" />
+                        </motion.button>
+                    </div>
                 </div>
             </motion.div>
         )}
 
-        {/* STEP 3: ROLE SELECTION (New Users) */}
-        {step === "role_select" && (
-            <motion.div
-                key="role-step"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md space-y-6"
-            >
-                <div className="text-center mb-4">
-                    <h2 className="text-3xl font-bold text-slate-900">Select Your Role</h2>
-                    <p className="text-slate-500">How would you like to join ServiceHub?</p>
+        {/* SCREEN 3: LOGIN / REGISTER FORM */}
+        {view === "login" && (
+          <motion.div
+            key="login-form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-sm"
+          >
+            <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/60 p-8 border border-white relative">
+                 <button 
+                    onClick={() => {
+                        if (step === "otp") setStep("phone");
+                        else setView("welcome");
+                    }}
+                    className="absolute top-6 left-6 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                    <ArrowLeft className="w-6 h-6 text-slate-400" />
+                </button>
+
+                <div className="mt-12 mb-8 text-center">
+                    <h2 className="text-3xl font-bold text-slate-900">
+                        {step === "otp" ? "Verification" : (authMode === "register" ? "Sign Up" : "Login")}
+                    </h2>
+                    <p className="text-slate-500">
+                        {step === "otp" 
+                            ? `Enter code sent to ${phone}` 
+                            : (authMode === "register" 
+                                ? `Creating ${selectedRole?.toLowerCase()} account` 
+                                : "Welcome back, please login")}
+                    </p>
                 </div>
 
-                {/* Customer Card */}
-                <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleRegister("CUSTOMER")}
-                    className="w-full bg-white p-6 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white flex items-center gap-6 group relative overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <User className="w-8 h-8" />
-                    </div>
-                    <div className="text-left flex-1">
-                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Register as Customer</h3>
-                        <p className="text-sm text-slate-500">Book services for your home</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 group-hover:text-white transition-all">
-                        <ArrowRight className="w-5 h-5" />
-                    </div>
-                </motion.button>
+                <div className="space-y-6">
+                    {step === "phone" ? (
+                        <div className="space-y-4">
+                            <div className="relative group">
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-200 to-purple-200 rounded-2xl blur opacity-20 group-focus-within:opacity-50 transition-opacity" />
+                                <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl px-4 py-2 focus-within:border-indigo-400 transition-colors h-16">
+                                    <Phone className="w-5 h-5 text-slate-400 mr-3" />
+                                    <div className="h-6 w-px bg-slate-100 mr-3" />
+                                    <Input 
+                                        className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-full text-lg font-medium text-slate-900 placeholder:text-slate-400 p-0"
+                                        placeholder="Mobile Number"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <Button 
+                                className="w-full h-14 text-lg font-bold rounded-[1.5rem] bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/30 active:scale-[0.98] transition-all"
+                                onClick={handlePhoneSubmit}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Continue"}
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <Input 
+                                className="text-center text-3xl font-bold tracking-[1em] h-20 rounded-[1.5rem] border-slate-200 bg-slate-50 focus-visible:ring-indigo-500"
+                                maxLength={4}
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="0000"
+                            />
+                            <Button 
+                                className="w-full h-14 text-lg font-bold rounded-[1.5rem] bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 active:scale-[0.98] transition-all"
+                                onClick={verifyOtp}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify & Login"}
+                            </Button>
+                        </div>
+                    )}
+                </div>
 
-                {/* Worker Card */}
-                <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleRegister("WORKER")}
-                    className="w-full bg-slate-900 p-6 rounded-[2rem] shadow-xl shadow-slate-900/20 border border-slate-800 flex items-center gap-6 group relative overflow-hidden"
-                >
-                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="w-16 h-16 rounded-2xl bg-white/10 text-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <Hammer className="w-8 h-8" />
+                {step === "phone" && (
+                    <div className="mt-8 text-center">
+                        <p className="text-sm text-slate-500">
+                            {authMode === "login" ? "Don't have an account?" : "Already have an account?"}
+                            <button 
+                                onClick={() => {
+                                    if (authMode === "login") handleStartRegister();
+                                    else handleStartLogin();
+                                }}
+                                className="ml-2 font-bold text-indigo-600 hover:underline"
+                            >
+                                {authMode === "login" ? "Create new account" : "Login here"}
+                            </button>
+                        </p>
                     </div>
-                    <div className="text-left flex-1">
-                        <h3 className="text-lg font-bold text-white">Register as Partner</h3>
-                        <p className="text-sm text-slate-400">Join us and earn money</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border border-slate-700 flex items-center justify-center group-hover:bg-white group-hover:text-slate-900 transition-all text-slate-400">
-                        <ArrowRight className="w-5 h-5" />
-                    </div>
-                </motion.button>
-            </motion.div>
+                )}
+            </div>
+          </motion.div>
         )}
 
       </AnimatePresence>
