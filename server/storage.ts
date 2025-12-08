@@ -1,4 +1,12 @@
+import { eq } from "drizzle-orm";
+import { db } from "./db";
 import {
+  users,
+  customerDetails,
+  workerDetails,
+  services,
+  bookings,
+  notifications,
   type User,
   type InsertUser,
   type CustomerDetails,
@@ -53,133 +61,70 @@ export interface IStorage {
   markNotificationRead(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User> = new Map();
-  private customerDetails: Map<number, CustomerDetails> = new Map();
-  private workerDetails: Map<number, WorkerDetails> = new Map();
-  private services: Map<number, Service> = new Map();
-  private bookings: Map<number, Booking> = new Map();
-  private notifications: Map<number, Notification> = new Map();
+export class DatabaseStorage implements IStorage {
   
-  private userIdCounter = 1;
-  private customerIdCounter = 1;
-  private workerIdCounter = 1;
-  private serviceIdCounter = 1;
-  private bookingIdCounter = 1;
-  private notificationIdCounter = 1;
-
-  constructor() {
-    this.seedData();
-  }
-
-  private seedData() {
-    // Create Admin User
-    const admin: User = {
-      id: this.userIdCounter++,
-      phone: "99999",
-      email: "admin@servicehub.com",
-      fullName: "Admin User",
-      role: "ADMIN",
-      profilePhoto: null,
-      gender: null,
-      dateOfBirth: null,
-      isActive: true,
-      createdAt: new Date(),
-    };
-    this.users.set(admin.id, admin);
-
-    // Create Sample Services
-    const sampleServices: InsertService[] = [
-      { name: "Plumbing", description: "Expert plumbing services", category: "Home Repair", basePrice: "500", icon: "🔧", image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39", isActive: true },
-      { name: "Electrician", description: "Electrical installation & repair", category: "Home Repair", basePrice: "600", icon: "⚡", image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4", isActive: true },
-      { name: "House Cleaning", description: "Deep cleaning services", category: "Cleaning", basePrice: "800", icon: "🧹", image: "https://images.unsplash.com/photo-1581578731117-10d52143b0d8", isActive: true },
-      { name: "AC Repair", description: "AC installation and servicing", category: "Appliance", basePrice: "700", icon: "❄️", image: "https://images.unsplash.com/photo-1631545804039-46c04932525a", isActive: true },
-    ];
-
-    sampleServices.forEach(service => {
-      const newService: Service = { 
-        ...service, 
-        id: this.serviceIdCounter++, 
-        createdAt: new Date(),
-        description: service.description ?? null,
-        icon: service.icon ?? null,
-        image: service.image ?? null,
-        isActive: service.isActive ?? true
-      };
-      this.services.set(newService.id, newService);
-    });
-  }
-
   // Users
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByPhone(phone: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(u => u.phone === phone);
+    const [user] = await db.select().from(users).where(eq(users.phone, phone));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = {
+    const [user] = await db.insert(users).values({
       ...insertUser,
       email: insertUser.email ?? null,
       profilePhoto: insertUser.profilePhoto ?? null,
       gender: insertUser.gender ?? null,
       dateOfBirth: insertUser.dateOfBirth ?? null,
       isActive: insertUser.isActive ?? true,
-      id: this.userIdCounter++,
-      createdAt: new Date(),
-    };
-    this.users.set(user.id, user);
+    }).returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    const updated = { ...user, ...updates };
-    this.users.set(id, updated);
-    return updated;
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return db.select().from(users);
   }
 
   // Customer Details
   async getCustomerDetails(userId: number): Promise<CustomerDetails | undefined> {
-    return Array.from(this.customerDetails.values()).find(d => d.userId === userId);
+    const [details] = await db.select().from(customerDetails).where(eq(customerDetails.userId, userId));
+    return details;
   }
 
   async createCustomerDetails(details: InsertCustomerDetails): Promise<CustomerDetails> {
-    const customerDetail: CustomerDetails = {
+    const [result] = await db.insert(customerDetails).values({
       ...details,
       house: details.house ?? null,
       street: details.street ?? null,
       city: details.city ?? null,
       pincode: details.pincode ?? null,
-      id: this.customerIdCounter++,
-      createdAt: new Date(),
-    };
-    this.customerDetails.set(customerDetail.id, customerDetail);
-    return customerDetail;
+    }).returning();
+    return result;
   }
 
   async updateCustomerDetails(userId: number, updates: Partial<CustomerDetails>): Promise<CustomerDetails | undefined> {
-    const existing = await this.getCustomerDetails(userId);
-    if (!existing) return undefined;
-    const updated = { ...existing, ...updates };
-    this.customerDetails.set(existing.id, updated);
-    return updated;
+    const [result] = await db.update(customerDetails).set(updates).where(eq(customerDetails.userId, userId)).returning();
+    return result;
   }
 
   // Worker Details
   async getWorkerDetails(userId: number): Promise<WorkerDetails | undefined> {
-    return Array.from(this.workerDetails.values()).find(d => d.userId === userId);
+    const [details] = await db.select().from(workerDetails).where(eq(workerDetails.userId, userId));
+    return details;
   }
 
   async createWorkerDetails(details: InsertWorkerDetails): Promise<WorkerDetails> {
-    const workerDetail: WorkerDetails = {
+    const [result] = await db.insert(workerDetails).values({
       ...details,
       subService: details.subService ?? null,
       experience: details.experience ?? null,
@@ -198,79 +143,70 @@ export class MemStorage implements IStorage {
       isVerified: details.isVerified ?? false,
       rating: details.rating ?? null,
       totalEarnings: details.totalEarnings ?? null,
-      id: this.workerIdCounter++,
-      createdAt: new Date(),
-    };
-    this.workerDetails.set(workerDetail.id, workerDetail);
-    return workerDetail;
+    }).returning();
+    return result;
   }
 
   async updateWorkerDetails(userId: number, updates: Partial<WorkerDetails>): Promise<WorkerDetails | undefined> {
-    const existing = await this.getWorkerDetails(userId);
-    if (!existing) return undefined;
-    const updated = { ...existing, ...updates };
-    this.workerDetails.set(existing.id, updated);
-    return updated;
+    const [result] = await db.update(workerDetails).set(updates).where(eq(workerDetails.userId, userId)).returning();
+    return result;
   }
 
   async getAllWorkers(): Promise<WorkerDetails[]> {
-    return Array.from(this.workerDetails.values());
+    return db.select().from(workerDetails);
   }
 
   // Services
   async getService(id: number): Promise<Service | undefined> {
-    return this.services.get(id);
+    const [service] = await db.select().from(services).where(eq(services.id, id));
+    return service;
   }
 
   async getAllServices(): Promise<Service[]> {
-    return Array.from(this.services.values()).filter(s => s.isActive);
+    return db.select().from(services).where(eq(services.isActive, true));
   }
 
   async createService(insertService: InsertService): Promise<Service> {
-    const service: Service = {
+    const [service] = await db.insert(services).values({
       ...insertService,
       description: insertService.description ?? null,
       icon: insertService.icon ?? null,
       image: insertService.image ?? null,
       isActive: insertService.isActive ?? true,
-      id: this.serviceIdCounter++,
-      createdAt: new Date(),
-    };
-    this.services.set(service.id, service);
+    }).returning();
     return service;
   }
 
   async updateService(id: number, updates: Partial<Service>): Promise<Service | undefined> {
-    const service = this.services.get(id);
-    if (!service) return undefined;
-    const updated = { ...service, ...updates };
-    this.services.set(id, updated);
-    return updated;
+    const [service] = await db.update(services).set(updates).where(eq(services.id, id)).returning();
+    return service;
   }
 
   async deleteService(id: number): Promise<boolean> {
-    return this.services.delete(id);
+    const result = await db.delete(services).where(eq(services.id, id));
+    return true;
   }
 
   // Bookings
   async getBooking(id: number): Promise<Booking | undefined> {
-    return this.bookings.get(id);
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking;
   }
 
   async getBookingsByCustomer(customerId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(b => b.customerId === customerId);
+    return db.select().from(bookings).where(eq(bookings.customerId, customerId));
   }
 
   async getBookingsByWorker(workerId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(b => b.workerId === workerId);
+    return db.select().from(bookings).where(eq(bookings.workerId, workerId));
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return Array.from(this.bookings.values());
+    return db.select().from(bookings);
   }
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
-    const booking: Booking = {
+    const [booking] = await db.insert(bookings).values({
       ...insertBooking,
       workerId: insertBooking.workerId ?? null,
       scheduledTime: insertBooking.scheduledTime ?? null,
@@ -282,45 +218,32 @@ export class MemStorage implements IStorage {
       workerNotes: insertBooking.workerNotes ?? null,
       rating: insertBooking.rating ?? null,
       review: insertBooking.review ?? null,
-      id: this.bookingIdCounter++,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.bookings.set(booking.id, booking);
+    }).returning();
     return booking;
   }
 
   async updateBooking(id: number, updates: Partial<Booking>): Promise<Booking | undefined> {
-    const booking = this.bookings.get(id);
-    if (!booking) return undefined;
-    const updated = { ...booking, ...updates, updatedAt: new Date() };
-    this.bookings.set(id, updated);
-    return updated;
+    const [booking] = await db.update(bookings).set({ ...updates, updatedAt: new Date() }).where(eq(bookings.id, id)).returning();
+    return booking;
   }
 
   // Notifications
   async getNotificationsByUser(userId: number): Promise<Notification[]> {
-    return Array.from(this.notifications.values()).filter(n => n.userId === userId);
+    return db.select().from(notifications).where(eq(notifications.userId, userId));
   }
 
   async createNotification(insertNotification: InsertNotification): Promise<Notification> {
-    const notification: Notification = {
+    const [notification] = await db.insert(notifications).values({
       ...insertNotification,
       isRead: insertNotification.isRead ?? false,
-      id: this.notificationIdCounter++,
-      createdAt: new Date(),
-    };
-    this.notifications.set(notification.id, notification);
+    }).returning();
     return notification;
   }
 
   async markNotificationRead(id: number): Promise<boolean> {
-    const notification = this.notifications.get(id);
-    if (!notification) return false;
-    notification.isRead = true;
-    this.notifications.set(id, notification);
+    await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
     return true;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
