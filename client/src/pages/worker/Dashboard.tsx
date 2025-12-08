@@ -1,15 +1,17 @@
 import { MOCK_ORDERS } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, Clock, CheckCircle2 } from "lucide-react";
+import { MapPin, Navigation, Clock, CheckCircle2, DollarSign } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleStatusUpdate = (orderId: string, newStatus: string) => {
     toast({
@@ -24,14 +26,17 @@ export default function WorkerDashboard() {
       <div className="bg-slate-900 text-white pt-8 pb-16 px-6 rounded-b-[2rem]">
         <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">Partner Dashboard</h1>
-            <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
-                <div className={cn("w-2.5 h-2.5 rounded-full", isOnline ? "bg-green-400" : "bg-slate-400")} />
+            <div 
+                className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md cursor-pointer hover:bg-white/20 transition-colors"
+                onClick={() => setIsOnline(!isOnline)}
+            >
+                <div className={cn("w-2.5 h-2.5 rounded-full", isOnline ? "bg-green-400" : "bg-red-400")} />
                 <span className="text-xs font-medium">{isOnline ? "Online" : "Offline"}</span>
             </div>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+            <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10" onClick={() => setLocation("/worker/earnings")}>
                 <p className="text-slate-400 text-xs font-medium uppercase">Today's Earnings</p>
                 <p className="text-2xl font-bold mt-1">$128.50</p>
             </div>
@@ -46,7 +51,11 @@ export default function WorkerDashboard() {
         <h2 className="text-lg font-bold text-slate-900 mb-4 px-2">Assigned Jobs</h2>
         <div className="space-y-4">
             {MOCK_ORDERS.filter(o => o.workerId === "worker1").map((order) => (
-                <div key={order.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                <div 
+                    key={order.id} 
+                    className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 cursor-pointer hover:border-primary/50 transition-colors"
+                    onClick={() => setLocation(`/worker/job/${order.id}`)}
+                >
                     <div className="flex justify-between items-start border-b border-slate-50 pb-3">
                         <div>
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">ID: {order.id}</span>
@@ -78,8 +87,8 @@ export default function WorkerDashboard() {
                     </div>
 
                     <div className="pt-2 flex gap-3">
-                        <Button className="flex-1 bg-slate-900 hover:bg-slate-800 rounded-xl" onClick={() => handleStatusUpdate(order.id, "Working")}>
-                            Start Job
+                        <Button className="flex-1 bg-slate-900 hover:bg-slate-800 rounded-xl">
+                            View Details
                         </Button>
                          <Button variant="outline" size="icon" className="w-12 h-10 rounded-xl border-slate-200">
                             <Navigation className="w-5 h-5 text-slate-600" />

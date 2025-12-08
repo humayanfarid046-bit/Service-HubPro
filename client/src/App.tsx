@@ -14,7 +14,12 @@ import CustomerTracking from "@/pages/customer/Tracking";
 import CustomerProfile from "@/pages/customer/Profile";
 import CustomerSupport from "@/pages/customer/Support";
 
+// Worker Pages
 import WorkerDashboard from "@/pages/worker/Dashboard";
+import WorkerJobDetails from "@/pages/worker/JobDetails";
+import WorkerEarnings from "@/pages/worker/Earnings";
+import WorkerProfile from "@/pages/worker/Profile";
+import WorkerSupport from "@/pages/worker/Support";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -101,9 +106,24 @@ function Router() {
         <MobileLayout><PrivateRoute component={CustomerSupport} allowedRoles={["CUSTOMER"]} /></MobileLayout>
       </Route>
 
+      {/* Worker Routes */}
       <Route path="/worker/dashboard">
         <MobileLayout><PrivateRoute component={WorkerDashboard} allowedRoles={["WORKER"]} /></MobileLayout>
       </Route>
+      <Route path="/worker/job/:id">
+        <MobileLayout><PrivateRoute component={WorkerJobDetails} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+      <Route path="/worker/profile">
+        <MobileLayout><PrivateRoute component={WorkerProfile} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+       {/* Note: Earnings and Support pages can be linked from Profile or Dashboard, added routes for them */}
+       <Route path="/worker/earnings">
+        <MobileLayout><PrivateRoute component={WorkerEarnings} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+       <Route path="/worker/support">
+        <MobileLayout><PrivateRoute component={WorkerSupport} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+
 
       {/* Default Redirects */}
       <Route path="/">
