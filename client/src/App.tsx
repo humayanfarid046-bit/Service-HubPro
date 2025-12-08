@@ -57,6 +57,10 @@ import AdminBookingStats from "@/pages/admin/BookingStats";
 import AdminRevenueStats from "@/pages/admin/RevenueStats";
 import AdminWorkerPerformance from "@/pages/admin/WorkerPerformance";
 import AdminCustomerLifetimeValue from "@/pages/admin/CustomerLifetimeValue";
+import AdminBannerManagement from "@/pages/admin/BannerManagement";
+import AdminHomepageContent from "@/pages/admin/HomepageContent";
+import AdminFAQManager from "@/pages/admin/FAQManager";
+import AdminTermsPolicyEditor from "@/pages/admin/TermsPolicyEditor";
 
 function PrivateRoute({ component: Component, allowedRoles }: { component: React.ComponentType, allowedRoles: string[] }) {
   const { role } = useAuth();
@@ -183,6 +187,18 @@ function Router() {
       </Route>
       <Route path="/admin/customer-clv">
         <AdminRoute component={AdminCustomerLifetimeValue} />
+      </Route>
+      <Route path="/admin/banners">
+        <AdminRoute component={AdminBannerManagement} />
+      </Route>
+      <Route path="/admin/homepage-content">
+        <AdminRoute component={AdminHomepageContent} />
+      </Route>
+      <Route path="/admin/faq">
+        <AdminRoute component={AdminFAQManager} />
+      </Route>
+      <Route path="/admin/terms-policy">
+        <AdminRoute component={AdminTermsPolicyEditor} />
       </Route>
 
       {/* Mobile App Routes - these use the MobileLayout */}
