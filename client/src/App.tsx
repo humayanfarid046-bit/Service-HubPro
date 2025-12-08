@@ -11,6 +11,9 @@ import NotFound from "@/pages/not-found";
 import CustomerHome from "@/pages/customer/Home";
 import CustomerBooking from "@/pages/customer/Booking";
 import CustomerTracking from "@/pages/customer/Tracking";
+import CustomerProfile from "@/pages/customer/Profile";
+import CustomerSupport from "@/pages/customer/Support";
+
 import WorkerDashboard from "@/pages/worker/Dashboard";
 
 // Admin Pages
@@ -91,6 +94,13 @@ function Router() {
       <Route path="/customer/bookings">
         <MobileLayout><PrivateRoute component={CustomerTracking} allowedRoles={["CUSTOMER"]} /></MobileLayout>
       </Route>
+      <Route path="/customer/profile">
+        <MobileLayout><PrivateRoute component={CustomerProfile} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/customer/support">
+        <MobileLayout><PrivateRoute component={CustomerSupport} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+
       <Route path="/worker/dashboard">
         <MobileLayout><PrivateRoute component={WorkerDashboard} allowedRoles={["WORKER"]} /></MobileLayout>
       </Route>
