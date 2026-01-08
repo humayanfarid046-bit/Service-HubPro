@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertCustomerDetailsSchema, insertWorkerDetailsSchema, insertServiceSchema, insertBookingSchema, insertJobSchema, insertBidSchema } from "@shared/schema";
+import { insertUserSchema, insertCustomerDetailsSchema, insertWorkerDetailsSchema, insertServiceSchema, insertBookingSchema, insertJobSchema, insertBidSchema, insertCustomerAddressSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
@@ -1320,6 +1320,76 @@ export async function registerRoutes(
       const dispute = await storage.updateDispute(parseInt(req.params.id), req.body);
       if (!dispute) return res.status(404).json({ error: "Dispute not found" });
       res.json(dispute);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= CUSTOMER ADDRESSES ROUTES =============
+  
+  // Get all addresses for a customer
+  app.get("/api/customers/:userId/addresses", async (req, res) => {
+    try {
+      const addresses = await storage.getCustomerAddresses(parseInt(req.params.userId));
+      res.json(addresses);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create a new address
+  app.post("/api/customers/:userId/addresses", async (req, res) => {
+    try {
+      const validated = insertCustomerAddressSchema.parse({
+        ...req.body,
+        userId: parseInt(req.params.userId)
+      });
+      const address = await storage.createCustomerAddress(validated);
+      res.status(201).json(address);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Update an address (with ownership check)
+  app.patch("/api/addresses/:id", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const existingAddress = await storage.getCustomerAddress(parseInt(req.params.id));
+      
+      if (!existingAddress) {
+        return res.status(404).json({ error: "Address not found" });
+      }
+      
+      // Verify ownership - userId must match
+      if (userId && existingAddress.userId !== userId) {
+        return res.status(403).json({ error: "Unauthorized to update this address" });
+      }
+      
+      const address = await storage.updateCustomerAddress(parseInt(req.params.id), req.body);
+      res.json(address);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Delete an address (with ownership check)
+  app.delete("/api/addresses/:id", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const existingAddress = await storage.getCustomerAddress(parseInt(req.params.id));
+      
+      if (!existingAddress) {
+        return res.status(404).json({ error: "Address not found" });
+      }
+      
+      // Verify ownership - userId must match
+      if (userId && existingAddress.userId !== parseInt(userId as string)) {
+        return res.status(403).json({ error: "Unauthorized to delete this address" });
+      }
+      
+      await storage.deleteCustomerAddress(parseInt(req.params.id));
+      res.json({ success: true, message: "Address deleted" });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

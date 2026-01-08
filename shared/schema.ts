@@ -35,6 +35,23 @@ export const insertCustomerDetailsSchema = createInsertSchema(customerDetails).o
 export type InsertCustomerDetails = z.infer<typeof insertCustomerDetailsSchema>;
 export type CustomerDetails = typeof customerDetails.$inferSelect;
 
+// Customer Addresses Table (multiple addresses per customer)
+export const customerAddresses = pgTable("customer_addresses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  label: text("label").notNull(), // Home, Office, etc.
+  house: text("house"),
+  street: text("street"),
+  city: text("city"),
+  pincode: text("pincode"),
+  isDefault: boolean("is_default").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCustomerAddressSchema = createInsertSchema(customerAddresses).omit({ id: true, createdAt: true });
+export type InsertCustomerAddress = z.infer<typeof insertCustomerAddressSchema>;
+export type CustomerAddress = typeof customerAddresses.$inferSelect;
+
 // Worker Details
 export const workerDetails = pgTable("worker_details", {
   id: serial("id").primaryKey(),
@@ -423,6 +440,7 @@ export type Announcement = typeof announcements.$inferSelect;
 // Jobs Table (Customer job postings for bidding)
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
+  referenceNumber: text("reference_number").notNull().unique(),
   customerId: integer("customer_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -443,7 +461,7 @@ export const jobs = pgTable("jobs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertJobSchema = createInsertSchema(jobs).omit({ id: true, createdAt: true, updatedAt: true, totalBids: true });
+export const insertJobSchema = createInsertSchema(jobs).omit({ id: true, referenceNumber: true, createdAt: true, updatedAt: true, totalBids: true });
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
 
