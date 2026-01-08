@@ -86,6 +86,15 @@ Preferred communication style: Simple, everyday language.
 4. **services**: Service catalog with categories, pricing, packages
 5. **bookings**: Service bookings with status tracking, scheduling, pricing
 6. **notifications**: User notification system
+7. **jobs**: Customer job postings with categories (HOME_VISIT/REMOTE), budget, description, location
+8. **bids**: Worker bids on jobs with proposed amount, schedule, cover letter
+
+**Bidding System**
+- Customers post jobs with HOME_VISIT (worker visits location) or REMOTE (no physical visit) categories
+- Workers browse open jobs and place competitive bids with cover letter
+- Customers view bids and select their preferred worker
+- Selection automatically marks job as "assigned" and rejects other bids
+- Workers can track all their bids and their status (pending/accepted/rejected)
 
 **Schema Organization**
 - Shared schema definitions in `shared/schema.ts`
