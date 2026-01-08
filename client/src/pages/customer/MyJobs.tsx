@@ -1,38 +1,32 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, ChevronLeft, Briefcase, Clock, MapPin, IndianRupee,
-  Users, Home, Laptop, Eye, CheckCircle
+  Users, Home, Laptop, Eye, CheckCircle, Loader2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  serviceType: string;
-  budget: number | null;
-  status: string;
-  totalBids: number;
-  createdAt: string;
-  city?: string;
-}
-
-const mockJobs: Job[] = [
-  { id: 1, title: "Fix leaking tap in bathroom", description: "The tap in my bathroom is leaking continuously. Need someone to fix it.", category: "HOME_VISIT", serviceType: "plumbing", budget: 500, status: "open", totalBids: 5, createdAt: "2 hours ago", city: "Kolkata" },
-  { id: 2, title: "Install ceiling fan", description: "Need to install a new ceiling fan in bedroom.", category: "HOME_VISIT", serviceType: "electrical", budget: 800, status: "open", totalBids: 3, createdAt: "5 hours ago", city: "Kolkata" },
-  { id: 3, title: "Deep cleaning of 2BHK", description: "Complete deep cleaning of my 2BHK apartment.", category: "HOME_VISIT", serviceType: "cleaning", budget: 2000, status: "assigned", totalBids: 8, createdAt: "1 day ago", city: "Kolkata" },
-  { id: 4, title: "Website logo design", description: "Need a professional logo for my business website.", category: "REMOTE", serviceType: "other", budget: 1500, status: "completed", totalBids: 12, createdAt: "3 days ago" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import type { Job } from "@shared/schema";
 
 export default function CustomerMyJobs() {
   const [, setLocation] = useLocation();
-  const [jobs] = useState<Job[]>(mockJobs);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
+
+  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+    queryKey: ["jobs", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const res = await fetch(`/api/jobs?customerId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch jobs");
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -46,6 +40,23 @@ export default function CustomerMyJobs() {
   };
 
   const filteredJobs = activeTab === "all" ? jobs : jobs.filter(j => j.status === activeTab);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  const getAddress = (job: Job) => {
+    if (!job.address) return null;
+    const addr = job.address as any;
+    return addr.city || addr.street || null;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -72,7 +83,11 @@ export default function CustomerMyJobs() {
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-3">
-            {filteredJobs.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            ) : filteredJobs.length === 0 ? (
               <Card className="border-dashed border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -85,6 +100,7 @@ export default function CustomerMyJobs() {
             ) : (
               filteredJobs.map((job) => {
                 const statusBadge = getStatusBadge(job.status);
+                const city = getAddress(job);
                 return (
                   <Card 
                     key={job.id} 
@@ -113,22 +129,22 @@ export default function CustomerMyJobs() {
                             ₹{job.budget}
                           </span>
                         )}
-                        {job.city && (
+                        {city && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            {job.city}
+                            {city}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {job.createdAt}
+                          {formatDate(job.createdAt)}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
                         <div className="flex items-center gap-1 text-sm">
                           <Users className="w-4 h-4 text-blue-600" />
-                          <span className="font-medium text-blue-600">{job.totalBids} bids</span>
+                          <span className="font-medium text-blue-600">{job.totalBids || 0} bids</span>
                         </div>
                         <Button 
                           size="sm" 

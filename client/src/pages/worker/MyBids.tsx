@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,31 +7,51 @@ import {
   Home, Laptop, Eye, Loader2, Award
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import type { Bid, Job } from "@shared/schema";
 
-interface Bid {
-  id: number;
-  jobId: number;
-  jobTitle: string;
-  jobCategory: string;
-  jobCity: string;
-  amount: number;
-  status: string;
-  createdAt: string;
-  customerName: string;
+interface BidWithJob extends Bid {
+  job?: Job;
 }
-
-const mockBids: Bid[] = [
-  { id: 1, jobId: 1, jobTitle: "Fix leaking tap in bathroom", jobCategory: "HOME_VISIT", jobCity: "Kolkata", amount: 450, status: "pending", createdAt: "2 hours ago", customerName: "Amit K." },
-  { id: 2, jobId: 3, jobTitle: "Deep cleaning of 2BHK", jobCategory: "HOME_VISIT", jobCity: "Salt Lake", amount: 1800, status: "accepted", createdAt: "1 day ago", customerName: "Rahul M." },
-  { id: 3, jobId: 5, jobTitle: "Paint one bedroom", jobCategory: "HOME_VISIT", jobCity: "Garia", amount: 4500, status: "pending", createdAt: "6 hours ago", customerName: "Bikash R." },
-  { id: 4, jobId: 7, jobTitle: "Repair washing machine", jobCategory: "HOME_VISIT", jobCity: "Dum Dum", amount: 600, status: "rejected", createdAt: "2 days ago", customerName: "Priya D." },
-  { id: 5, jobId: 6, jobTitle: "Website bug fixing", jobCategory: "REMOTE", jobCity: "", amount: 1500, status: "pending", createdAt: "5 hours ago", customerName: "Pooja K." },
-];
 
 export default function WorkerMyBids() {
   const [, setLocation] = useLocation();
-  const [bids] = useState<Bid[]>(mockBids);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
+
+  const { data: bids = [], isLoading } = useQuery<Bid[]>({
+    queryKey: ["worker-bids", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const res = await fetch(`/api/bids?workerId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch bids");
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch job details for each bid
+  const { data: jobsMap = {} } = useQuery<Record<number, Job>>({
+    queryKey: ["bid-jobs", bids.map(b => b.jobId)],
+    queryFn: async () => {
+      const jobIds = [...new Set(bids.map(b => b.jobId))];
+      const jobsData: Record<number, Job> = {};
+      for (const jobId of jobIds) {
+        try {
+          const res = await fetch(`/api/jobs/${jobId}`);
+          if (res.ok) {
+            jobsData[jobId] = await res.json();
+          }
+        } catch (e) {
+          console.error(`Failed to fetch job ${jobId}`);
+        }
+      }
+      return jobsData;
+    },
+    enabled: bids.length > 0,
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -51,6 +70,24 @@ export default function WorkerMyBids() {
     pending: bids.filter(b => b.status === "pending").length,
     accepted: bids.filter(b => b.status === "accepted").length,
     rejected: bids.filter(b => b.status === "rejected").length,
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  const getJobCity = (jobId: number) => {
+    const job = jobsMap[jobId];
+    if (!job?.address) return null;
+    const addr = job.address as any;
+    return addr.city || addr.street || null;
   };
 
   return (
@@ -102,7 +139,11 @@ export default function WorkerMyBids() {
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-3">
-            {filteredBids.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            ) : filteredBids.length === 0 ? (
               <Card className="border-dashed border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Award className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -116,6 +157,8 @@ export default function WorkerMyBids() {
               filteredBids.map((bid) => {
                 const statusBadge = getStatusBadge(bid.status);
                 const StatusIcon = statusBadge.icon;
+                const job = jobsMap[bid.jobId];
+                const city = getJobCity(bid.jobId);
                 return (
                   <Card 
                     key={bid.id} 
@@ -126,17 +169,16 @@ export default function WorkerMyBids() {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className={bid.jobCategory === "HOME_VISIT" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-purple-50 text-purple-700 border-purple-200"}>
-                              {bid.jobCategory === "HOME_VISIT" ? <Home className="w-3 h-3 mr-1" /> : <Laptop className="w-3 h-3 mr-1" />}
-                              {bid.jobCategory === "HOME_VISIT" ? "Home Visit" : "Remote"}
+                            <Badge variant="outline" className={job?.category === "HOME_VISIT" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-purple-50 text-purple-700 border-purple-200"}>
+                              {job?.category === "HOME_VISIT" ? <Home className="w-3 h-3 mr-1" /> : <Laptop className="w-3 h-3 mr-1" />}
+                              {job?.category === "HOME_VISIT" ? "Home Visit" : "Remote"}
                             </Badge>
                             <Badge className={statusBadge.color}>
                               <StatusIcon className={`w-3 h-3 mr-1 ${bid.status === 'pending' ? 'animate-spin' : ''}`} />
                               {statusBadge.label}
                             </Badge>
                           </div>
-                          <h3 className="font-semibold text-slate-900">{bid.jobTitle}</h3>
-                          <p className="text-sm text-slate-500 mt-1">Customer: {bid.customerName}</p>
+                          <h3 className="font-semibold text-slate-900">{job?.title || "Loading..."}</h3>
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-emerald-600">₹{bid.amount}</p>
@@ -145,21 +187,21 @@ export default function WorkerMyBids() {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-3">
-                        {bid.jobCity && (
+                        {city && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            {bid.jobCity}
+                            {city}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {bid.createdAt}
+                          {formatDate(bid.createdAt)}
                         </span>
                       </div>
 
                       {bid.status === "accepted" && (
                         <div className="mt-4 pt-3 border-t border-slate-100">
-                          <Button className="w-full gap-2" onClick={() => setLocation(`/worker/job/${bid.jobId}/details`)}>
+                          <Button className="w-full gap-2" onClick={() => setLocation(`/worker/job/${bid.jobId}`)}>
                             <Eye className="w-4 h-4" />
                             View Job Details
                           </Button>

@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   Search, ChevronLeft, Briefcase, Clock, MapPin, IndianRupee,
-  Users, Home, Laptop, Filter, Flame, TrendingUp
+  Users, Home, Laptop, Filter, Flame, TrendingUp, Loader2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import type { Job } from "@shared/schema";
 import {
   Select,
   SelectContent,
@@ -17,39 +19,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface Job {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  serviceType: string;
-  budget: number | null;
-  budgetType: string;
-  status: string;
-  totalBids: number;
-  createdAt: string;
-  city?: string;
-  urgency: string;
-  customerName: string;
-}
-
-const mockJobs: Job[] = [
-  { id: 1, title: "Fix leaking tap in bathroom", description: "The tap in my bathroom is leaking continuously. Need someone to fix it urgently.", category: "HOME_VISIT", serviceType: "plumbing", budget: 500, budgetType: "negotiable", status: "open", totalBids: 5, createdAt: "2 hours ago", city: "Kolkata", urgency: "urgent", customerName: "Amit K." },
-  { id: 2, title: "Install ceiling fan", description: "Need to install a new ceiling fan in bedroom. Fan already purchased.", category: "HOME_VISIT", serviceType: "electrical", budget: 800, budgetType: "fixed", status: "open", totalBids: 3, createdAt: "5 hours ago", city: "Howrah", urgency: "normal", customerName: "Priya S." },
-  { id: 3, title: "Deep cleaning of 2BHK", description: "Complete deep cleaning of my 2BHK apartment including kitchen and bathrooms.", category: "HOME_VISIT", serviceType: "cleaning", budget: 2000, budgetType: "fixed", status: "open", totalBids: 8, createdAt: "1 day ago", city: "Salt Lake", urgency: "flexible", customerName: "Rahul M." },
-  { id: 4, title: "AC not cooling properly", description: "My 1.5 ton split AC is not cooling. Need servicing and gas refill if required.", category: "HOME_VISIT", serviceType: "ac_repair", budget: 1500, budgetType: "negotiable", status: "open", totalBids: 4, createdAt: "3 hours ago", city: "Dum Dum", urgency: "urgent", customerName: "Suman D." },
-  { id: 5, title: "Paint one bedroom", description: "Need to paint one bedroom (12x10 ft). Asian paint preferred.", category: "HOME_VISIT", serviceType: "painting", budget: 5000, budgetType: "fixed", status: "open", totalBids: 6, createdAt: "6 hours ago", city: "Garia", urgency: "normal", customerName: "Bikash R." },
-  { id: 6, title: "Website bug fixing", description: "My e-commerce website has some bugs that need to be fixed.", category: "REMOTE", serviceType: "other", budget: 2000, budgetType: "hourly", status: "open", totalBids: 2, createdAt: "4 hours ago", urgency: "normal", customerName: "Pooja K." },
-];
-
 export default function WorkerBrowseJobs() {
   const [, setLocation] = useLocation();
-  const [jobs] = useState<Job[]>(mockJobs);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  const getUrgencyBadge = (urgency: string) => {
+  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+    queryKey: ["jobs", "open"],
+    queryFn: async () => {
+      const res = await fetch("/api/jobs?status=open");
+      if (!res.ok) throw new Error("Failed to fetch jobs");
+      return res.json();
+    },
+  });
+
+  const getUrgencyBadge = (urgency: string | null) => {
     switch (urgency) {
       case "urgent": return { color: "bg-red-100 text-red-700", icon: Flame };
       case "normal": return { color: "bg-blue-100 text-blue-700", icon: Clock };
@@ -65,6 +50,23 @@ export default function WorkerBrowseJobs() {
     const matchesService = categoryFilter === "all" || job.serviceType === categoryFilter;
     return matchesSearch && matchesCategory && matchesService;
   });
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    if (hours < 1) return "Just now";
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+
+  const getAddress = (job: Job) => {
+    if (!job.address) return null;
+    const addr = job.address as any;
+    return addr.city || addr.street || null;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -121,7 +123,11 @@ export default function WorkerBrowseJobs() {
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-3">
-            {filteredJobs.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            ) : filteredJobs.length === 0 ? (
               <Card className="border-dashed border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -132,11 +138,12 @@ export default function WorkerBrowseJobs() {
               filteredJobs.map((job) => {
                 const urgencyBadge = getUrgencyBadge(job.urgency);
                 const UrgencyIcon = urgencyBadge.icon;
+                const city = getAddress(job);
                 return (
                   <Card 
                     key={job.id} 
                     className="border-slate-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setLocation(`/worker/job/${job.id}`)}
+                    onClick={() => setLocation(`/worker/job/${job.id}/bid`)}
                     data-testid={`card-job-${job.id}`}
                   >
                     <CardContent className="p-4">
@@ -160,30 +167,30 @@ export default function WorkerBrowseJobs() {
                         {job.budget && (
                           <div className="text-right ml-3">
                             <p className="text-lg font-bold text-emerald-600">₹{job.budget}</p>
-                            <p className="text-xs text-slate-400">{job.budgetType}</p>
+                            <p className="text-xs text-slate-400">{job.budgetType || "fixed"}</p>
                           </div>
                         )}
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-3">
-                        {job.city && (
+                        {city && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            {job.city}
+                            {city}
                           </span>
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {job.createdAt}
+                          {formatDate(job.createdAt)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          {job.totalBids} bids
+                          {job.totalBids || 0} bids
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                        <span className="text-xs text-slate-400">Posted by {job.customerName}</span>
+                        <span className="text-xs text-slate-400">Posted by Customer</span>
                         <Button size="sm" data-testid={`button-bid-${job.id}`}>
                           <TrendingUp className="w-3 h-3 mr-1" />
                           Place Bid
