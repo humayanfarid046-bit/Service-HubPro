@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertCustomerDetailsSchema, insertWorkerDetailsSchema, insertServiceSchema, insertBookingSchema, insertJobSchema, insertBidSchema, insertCustomerAddressSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import bcrypt from "bcryptjs";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -200,8 +201,9 @@ export async function registerRoutes(
         return res.status(401).json({ error: "User not found. Please register." });
       }
       
-      // Check password (simple comparison for demo - use bcrypt in production)
-      if (user.password !== password) {
+      // Check password with bcrypt
+      const isValidPassword = await bcrypt.compare(password, user.password || "");
+      if (!isValidPassword) {
         return res.status(401).json({ error: "Invalid password" });
       }
       
@@ -340,11 +342,57 @@ export async function registerRoutes(
     }
   });
 
+  // Reset Password
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { emailOrPhone, newPassword } = req.body;
+      
+      if (!emailOrPhone || !newPassword) {
+        return res.status(400).json({ error: "Email/phone and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      
+      const isEmail = emailOrPhone.includes("@");
+      let user;
+      
+      if (isEmail) {
+        user = await storage.getUserByEmail(emailOrPhone);
+      } else {
+        user = await storage.getUserByPhone(emailOrPhone);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Hash and update user password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(user.id, { password: hashedPassword });
+      
+      return res.json({
+        success: true,
+        message: "Password reset successfully. You can now login with your new password."
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Register Customer
   app.post("/api/auth/register/customer", async (req, res) => {
     try {
+      // Hash password if provided
+      let hashedPassword = undefined;
+      if (req.body.password) {
+        hashedPassword = await bcrypt.hash(req.body.password, 10);
+      }
+      
       const userData = insertUserSchema.parse({
         ...req.body,
+        password: hashedPassword,
         role: "CUSTOMER",
         isActive: false  // Customer starts as inactive, needs admin approval
       });
@@ -375,9 +423,16 @@ export async function registerRoutes(
   // Register Worker
   app.post("/api/auth/register/worker", async (req, res) => {
     try {
+      // Hash password if provided
+      let hashedPassword = undefined;
+      if (req.body.password) {
+        hashedPassword = await bcrypt.hash(req.body.password, 10);
+      }
+      
       const userData = insertUserSchema.parse({
         phone: req.body.phone,
         email: req.body.email,
+        password: hashedPassword,
         fullName: req.body.fullName,
         role: "WORKER",
         profilePhoto: req.body.profilePhoto,

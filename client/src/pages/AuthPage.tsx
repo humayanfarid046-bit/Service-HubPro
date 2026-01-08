@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-type AuthView = "welcome" | "login" | "register_role" | "forgot_password" | "otp_verify";
+type AuthView = "welcome" | "login" | "register_role" | "forgot_password" | "otp_verify" | "new_password";
 
 export default function AuthPage() {
   const { login } = useAuth();
@@ -20,6 +20,8 @@ export default function AuthPage() {
   const [view, setView] = useState<AuthView>("welcome");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Form State
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -27,6 +29,8 @@ export default function AuthPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [otp, setOtp] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleLogin = async () => {
     if (!emailOrPhone || !password) {
@@ -122,10 +126,53 @@ export default function AuthPage() {
       
       if (data.success) {
         toast({ title: "Verified!", description: "You can now reset your password." });
-        // In a real app, would navigate to password reset page
-        setView("login");
+        setView("new_password");
       } else {
         toast({ title: "Invalid OTP", description: data.error || "Please try again.", variant: "destructive" });
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast({ title: "Error", description: "Something went wrong.", variant: "destructive" });
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast({ title: "Error", description: "Please enter and confirm your new password.", variant: "destructive" });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({ title: "Error", description: "Password must be at least 6 characters.", variant: "destructive" });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match.", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailOrPhone: resetEmail, newPassword }),
+      });
+      
+      const data = await response.json();
+      setIsLoading(false);
+      
+      if (data.success) {
+        toast({ title: "Success!", description: "Your password has been reset. Please login with your new password." });
+        setNewPassword("");
+        setConfirmPassword("");
+        setResetEmail("");
+        setOtp("");
+        setView("login");
+      } else {
+        toast({ title: "Error", description: data.error || "Failed to reset password.", variant: "destructive" });
       }
     } catch (error) {
       setIsLoading(false);
@@ -503,6 +550,93 @@ export default function AuthPage() {
                     Resend OTP
                   </button>
                 </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* NEW PASSWORD SCREEN */}
+        {view === "new_password" && (
+          <motion.div
+            key="new_password"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="w-full max-w-sm"
+          >
+            <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 shadow-2xl">
+              <button 
+                onClick={() => setView("otp_verify")}
+                className="p-2 rounded-full hover:bg-slate-700/50 transition-colors mb-4"
+              >
+                <ArrowLeft className="w-6 h-6 text-slate-400" />
+              </button>
+
+              {/* Logo */}
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <Lock className="w-8 h-8 text-white" />
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-white text-center mb-2">Create New Password</h2>
+              <p className="text-slate-400 text-center mb-8">
+                Enter your new password below
+              </p>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-sm">New Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <Input 
+                      className="h-14 pl-12 pr-12 bg-slate-700/50 border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      data-testid="input-new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    >
+                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-400 text-sm">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <Input 
+                      className="h-14 pl-12 pr-12 bg-slate-700/50 border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      data-testid="input-confirm-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button 
+                  className="w-full h-14 text-lg font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                  onClick={handleResetPassword}
+                  disabled={isLoading}
+                  data-testid="button-reset-password"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reset Password"}
+                </Button>
               </div>
             </div>
           </motion.div>
