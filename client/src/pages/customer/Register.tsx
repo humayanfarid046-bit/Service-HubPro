@@ -28,6 +28,7 @@ export default function CustomerRegister() {
     street: "",
     city: "",
     pincode: "",
+    fullAddress: "",
     gender: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -360,8 +361,15 @@ export default function CustomerRegister() {
             house: location.house || formData.house,
             street: location.street || formData.street,
             city: location.city || formData.city,
-            pincode: location.pincode || formData.pincode
+            pincode: location.pincode || formData.pincode,
+            fullAddress: location.fullAddress || formData.fullAddress
           });
+        }}
+        initialValues={{
+          house: formData.house,
+          street: formData.street,
+          city: formData.city,
+          pincode: formData.pincode
         }}
         darkMode={true}
       />

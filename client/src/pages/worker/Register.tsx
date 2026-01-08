@@ -563,6 +563,12 @@ export default function WorkerRegister() {
             pincode: location.pincode || prev.pincode
           }));
         }}
+        initialValues={{
+          house: formData.house,
+          street: formData.street,
+          city: formData.city,
+          pincode: formData.pincode
+        }}
         darkMode={true}
       />
     </div>
