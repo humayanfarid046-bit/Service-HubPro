@@ -34,7 +34,7 @@ export async function registerRoutes(
         return res.json({ 
           success: true, 
           sessionId: mockSessionId,
-          message: "OTP sent (mock mode - use 1234)",
+          message: "OTP sent (mock mode - use 123456)",
           mock: true
         });
       }
@@ -76,8 +76,8 @@ export async function registerRoutes(
       const apiKey = process.env.TWOFACTOR_API_KEY;
       
       if (!apiKey || sessionId?.startsWith("mock_")) {
-        // Mock verification - accept 1234
-        if (otp === "1234") {
+        // Mock verification - accept 123456
+        if (otp === "123456") {
           otpSessions.delete(phone);
           const user = await storage.getUserByPhone(phone);
           
@@ -99,7 +99,7 @@ export async function registerRoutes(
             message: "OTP verified (mock mode)"
           });
         } else {
-          return res.status(400).json({ error: "Invalid OTP. Use 1234 for testing." });
+          return res.status(400).json({ error: "Invalid OTP. Use 123456 for testing." });
         }
       }
       
@@ -263,7 +263,7 @@ export async function registerRoutes(
         otpSessions.set(emailOrPhone, mockSessionId);
         return res.json({
           success: true,
-          message: "OTP sent (use 1234 for testing)",
+          message: "OTP sent (use 123456 for testing)",
           mock: true
         });
       }
@@ -310,15 +310,15 @@ export async function registerRoutes(
       
       // Check if mock session (no API key or reset_ prefix)
       if (!apiKey || sessionId.startsWith("reset_")) {
-        // Mock verification - accept 1234
-        if (otp === "1234") {
+        // Mock verification - accept 123456
+        if (otp === "123456") {
           otpSessions.delete(emailOrPhone);
           return res.json({
             success: true,
             message: "OTP verified. You can now reset your password."
           });
         } else {
-          return res.status(400).json({ error: "Invalid OTP. Use 1234 for testing." });
+          return res.status(400).json({ error: "Invalid OTP. Use 123456 for testing." });
         }
       }
       

@@ -107,8 +107,8 @@ export default function AuthPage() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 4) {
-      toast({ title: "Error", description: "Please enter a valid OTP.", variant: "destructive" });
+    if (!otp || otp.length < 6) {
+      toast({ title: "Error", description: "Please enter a valid 6-digit OTP.", variant: "destructive" });
       return;
     }
 
@@ -511,20 +511,26 @@ export default function AuthPage() {
               </p>
 
               <div className="space-y-5">
-                <div className="flex justify-center gap-3">
-                  {[0, 1, 2, 3].map((i) => (
+                <div className="flex justify-center gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
                     <Input 
                       key={i}
-                      className="w-14 h-14 text-center text-2xl font-bold bg-slate-700/50 border-slate-600 rounded-xl text-white focus:border-cyan-500 focus:ring-cyan-500/20"
+                      className="w-11 h-12 text-center text-xl font-bold bg-slate-700/50 border-slate-600 rounded-xl text-white focus:border-cyan-500 focus:ring-cyan-500/20"
                       maxLength={1}
                       value={otp[i] || ""}
                       onChange={(e) => {
                         const newOtp = otp.split("");
                         newOtp[i] = e.target.value;
                         setOtp(newOtp.join(""));
-                        if (e.target.value && i < 3) {
-                          const nextInput = document.querySelector(`input:nth-of-type(${i + 2})`) as HTMLInputElement;
-                          nextInput?.focus();
+                        if (e.target.value && i < 5) {
+                          const inputs = document.querySelectorAll('[data-testid^="input-otp-"]');
+                          (inputs[i + 1] as HTMLInputElement)?.focus();
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Backspace" && !otp[i] && i > 0) {
+                          const inputs = document.querySelectorAll('[data-testid^="input-otp-"]');
+                          (inputs[i - 1] as HTMLInputElement)?.focus();
                         }
                       }}
                       data-testid={`input-otp-${i}`}
