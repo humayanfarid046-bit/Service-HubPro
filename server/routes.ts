@@ -177,6 +177,121 @@ export async function registerRoutes(
     }
   });
 
+  // Login with email/phone + password
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { emailOrPhone, password } = req.body;
+      
+      if (!emailOrPhone || !password) {
+        return res.status(400).json({ error: "Email/phone and password are required" });
+      }
+      
+      // Check if it's email or phone
+      const isEmail = emailOrPhone.includes("@");
+      let user;
+      
+      if (isEmail) {
+        user = await storage.getUserByEmail(emailOrPhone);
+      } else {
+        user = await storage.getUserByPhone(emailOrPhone);
+      }
+      
+      if (!user) {
+        return res.status(401).json({ error: "User not found. Please register." });
+      }
+      
+      // Check password (simple comparison for demo - use bcrypt in production)
+      if (user.password !== password) {
+        return res.status(401).json({ error: "Invalid password" });
+      }
+      
+      // Check if user is pending approval
+      if (!user.isActive) {
+        return res.json({
+          success: false,
+          pendingApproval: true,
+          message: "Your account is pending approval. Our team will review your request and get in touch with you shortly."
+        });
+      }
+      
+      // Hide password in response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      return res.json({
+        success: true,
+        user: userWithoutPassword,
+        message: "Login successful"
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Forgot password - send OTP
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { emailOrPhone } = req.body;
+      
+      if (!emailOrPhone) {
+        return res.status(400).json({ error: "Email or phone is required" });
+      }
+      
+      const isEmail = emailOrPhone.includes("@");
+      let user;
+      
+      if (isEmail) {
+        user = await storage.getUserByEmail(emailOrPhone);
+      } else {
+        user = await storage.getUserByPhone(emailOrPhone);
+      }
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // For demo - just return success (in production, send actual OTP via SMS/email)
+      const mockSessionId = `reset_${Date.now()}`;
+      otpSessions.set(emailOrPhone, mockSessionId);
+      
+      return res.json({
+        success: true,
+        message: "OTP sent (use 1234 for testing)"
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Verify reset OTP
+  app.post("/api/auth/verify-reset-otp", async (req, res) => {
+    try {
+      const { emailOrPhone, otp } = req.body;
+      
+      if (!emailOrPhone || !otp) {
+        return res.status(400).json({ error: "Email/phone and OTP are required" });
+      }
+      
+      const sessionId = otpSessions.get(emailOrPhone);
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "OTP session expired. Please request new OTP." });
+      }
+      
+      // For demo - accept 1234
+      if (otp === "1234") {
+        otpSessions.delete(emailOrPhone);
+        return res.json({
+          success: true,
+          message: "OTP verified. You can now reset your password."
+        });
+      } else {
+        return res.status(400).json({ error: "Invalid OTP. Use 1234 for testing." });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Register Customer
   app.post("/api/auth/register/customer", async (req, res) => {
     try {
