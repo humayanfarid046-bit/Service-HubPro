@@ -86,6 +86,10 @@ export default function WorkerPlaceBid() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.id) {
+      toast({ title: "Error", description: "Please log in to place a bid", variant: "destructive" });
+      return;
+    }
     if (!formData.amount || !formData.coverLetter) {
       toast({ title: "Error", description: "Please fill all required fields", variant: "destructive" });
       return;
