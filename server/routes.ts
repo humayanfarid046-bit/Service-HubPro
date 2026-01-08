@@ -528,6 +528,17 @@ export async function registerRoutes(
     }
   });
 
+  // Delete user
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteUser(id);
+      res.json({ success: true, message: "User deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= PLATFORM SETTINGS ROUTES =============
   
   // Get all settings

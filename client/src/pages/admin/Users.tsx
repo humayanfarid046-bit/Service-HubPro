@@ -2,9 +2,8 @@ import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, Users, UserCheck, UserX, Shield, ChevronDown, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Search, Loader2, Users, UserCheck, UserX, Shield, ChevronDown, Clock, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -20,6 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
 
@@ -29,6 +38,7 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
 
   const { data: users = [], isLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
@@ -54,10 +64,32 @@ export default function AdminUsers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({ title: "সফল!", description: "ব্যবহারকারী আপডেট হয়েছে।" });
+      toast({ title: "Success!", description: "User updated successfully." });
     },
     onError: (error: Error) => {
-      toast({ title: "ত্রুটি", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/users/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to delete user");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Success!", description: "User deleted successfully." });
+      setDeleteUserId(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setDeleteUserId(null);
     },
   });
 
@@ -86,6 +118,16 @@ export default function AdminUsers() {
     updateUserMutation.mutate({ id: userId, updates: { isActive: false } });
   };
 
+  const handleDelete = (userId: number) => {
+    setDeleteUserId(userId);
+  };
+
+  const confirmDelete = () => {
+    if (deleteUserId) {
+      deleteUserMutation.mutate(deleteUserId);
+    }
+  };
+
   const handleRoleChange = (userId: number, newRole: string) => {
     updateUserMutation.mutate({ id: userId, updates: { role: newRole } });
   };
@@ -107,19 +149,19 @@ export default function AdminUsers() {
     <AdminLayout>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">ব্যবহারকারী ব্যবস্থাপনা</h1>
-          <p className="text-slate-500 mt-1">সকল ব্যবহারকারী দেখুন, অনুমোদন দিন বা প্রত্যাখ্যান করুন</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">User Management</h1>
+          <p className="text-slate-500 mt-1">View all users, approve, reject or delete accounts</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-        <Card className="bg-white border-slate-100 shadow-sm">
+        <Card className="bg-white border-slate-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => setStatusFilter("ALL")}>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2.5 bg-slate-100 text-slate-600 rounded-xl">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">মোট</p>
+              <p className="text-xs text-slate-500 font-medium">Total</p>
               <p className="text-xl font-bold text-slate-900">{totalUsers}</p>
             </div>
           </CardContent>
@@ -130,7 +172,7 @@ export default function AdminUsers() {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">অপেক্ষমান</p>
+              <p className="text-xs text-slate-500 font-medium">Pending</p>
               <p className="text-xl font-bold text-amber-600">{pendingCount}</p>
             </div>
           </CardContent>
@@ -141,7 +183,7 @@ export default function AdminUsers() {
               <UserCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">সক্রিয়</p>
+              <p className="text-xs text-slate-500 font-medium">Active</p>
               <p className="text-xl font-bold text-green-600">{activeCount}</p>
             </div>
           </CardContent>
@@ -152,7 +194,7 @@ export default function AdminUsers() {
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">এডমিন</p>
+              <p className="text-xs text-slate-500 font-medium">Admins</p>
               <p className="text-xl font-bold text-slate-900">{adminCount}</p>
             </div>
           </CardContent>
@@ -163,7 +205,7 @@ export default function AdminUsers() {
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">ওয়ার্কার</p>
+              <p className="text-xs text-slate-500 font-medium">Workers</p>
               <p className="text-xl font-bold text-slate-900">{workerCount}</p>
             </div>
           </CardContent>
@@ -174,7 +216,7 @@ export default function AdminUsers() {
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-medium">কাস্টমার</p>
+              <p className="text-xs text-slate-500 font-medium">Customers</p>
               <p className="text-xl font-bold text-slate-900">{customerCount}</p>
             </div>
           </CardContent>
@@ -186,7 +228,7 @@ export default function AdminUsers() {
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <Input 
-              placeholder="নাম বা ফোন নম্বর দিয়ে খুঁজুন..." 
+              placeholder="Search by name or phone..." 
               className="pl-9 bg-slate-50 border-slate-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -196,23 +238,23 @@ export default function AdminUsers() {
           <div className="flex gap-3">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-40" data-testid="select-status-filter">
-                <SelectValue placeholder="স্ট্যাটাস" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">সব স্ট্যাটাস</SelectItem>
-                <SelectItem value="PENDING">অপেক্ষমান</SelectItem>
-                <SelectItem value="ACTIVE">সক্রিয়</SelectItem>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
               </SelectContent>
             </Select>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger className="w-full md:w-40" data-testid="select-role-filter">
-                <SelectValue placeholder="রোল ফিল্টার" />
+                <SelectValue placeholder="Role Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">সব রোল</SelectItem>
-                <SelectItem value="ADMIN">এডমিন</SelectItem>
-                <SelectItem value="WORKER">ওয়ার্কার</SelectItem>
-                <SelectItem value="CUSTOMER">কাস্টমার</SelectItem>
+                <SelectItem value="ALL">All Roles</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="WORKER">Worker</SelectItem>
+                <SelectItem value="CUSTOMER">Customer</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -224,19 +266,19 @@ export default function AdminUsers() {
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
-              কোনো ব্যবহারকারী পাওয়া যায়নি।
+              No users found.
             </div>
           ) : (
             <div className="rounded-xl border border-slate-100 overflow-hidden">
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50 text-slate-500 font-medium">
                   <tr>
-                    <th className="px-6 py-4">ব্যবহারকারী</th>
-                    <th className="px-6 py-4">ফোন</th>
-                    <th className="px-6 py-4">রোল</th>
-                    <th className="px-6 py-4">স্ট্যাটাস</th>
-                    <th className="px-6 py-4">যোগদান</th>
-                    <th className="px-6 py-4 text-right">অ্যাকশন</th>
+                    <th className="px-6 py-4">User</th>
+                    <th className="px-6 py-4">Phone</th>
+                    <th className="px-6 py-4">Role</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Joined</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -254,7 +296,7 @@ export default function AdminUsers() {
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900">{user.fullName}</p>
-                            <p className="text-xs text-slate-500">{user.email || "ইমেইল নেই"}</p>
+                            <p className="text-xs text-slate-500">{user.email || "No email"}</p>
                           </div>
                         </div>
                       </td>
@@ -266,19 +308,19 @@ export default function AdminUsers() {
                               "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border cursor-pointer hover:opacity-80",
                               getRoleBadgeStyle(user.role)
                             )} data-testid={`dropdown-role-${user.id}`}>
-                              {user.role === "ADMIN" ? "এডমিন" : user.role === "WORKER" ? "ওয়ার্কার" : "কাস্টমার"}
+                              {user.role}
                               <ChevronDown className="w-3 h-3" />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuItem onClick={() => handleRoleChange(user.id, "ADMIN")}>
-                              <Shield className="w-4 h-4 mr-2 text-purple-600" /> এডমিন
+                              <Shield className="w-4 h-4 mr-2 text-purple-600" /> Admin
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRoleChange(user.id, "WORKER")}>
-                              <Users className="w-4 h-4 mr-2 text-blue-600" /> ওয়ার্কার
+                              <Users className="w-4 h-4 mr-2 text-blue-600" /> Worker
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleRoleChange(user.id, "CUSTOMER")}>
-                              <Users className="w-4 h-4 mr-2 text-emerald-600" /> কাস্টমার
+                              <Users className="w-4 h-4 mr-2 text-emerald-600" /> Customer
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -286,16 +328,16 @@ export default function AdminUsers() {
                       <td className="px-6 py-4">
                         {user.isActive ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                            <UserCheck className="w-3 h-3" /> সক্রিয়
+                            <UserCheck className="w-3 h-3" /> Active
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                            <Clock className="w-3 h-3" /> অপেক্ষমান
+                            <Clock className="w-3 h-3" /> Pending
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-slate-500">
-                        {new Date(user.createdAt).toLocaleDateString("bn-BD", { 
+                        {new Date(user.createdAt).toLocaleDateString("en-IN", { 
                           day: "numeric", month: "short", year: "numeric" 
                         })}
                       </td>
@@ -311,7 +353,7 @@ export default function AdminUsers() {
                                 data-testid={`button-approve-${user.id}`}
                               >
                                 <CheckCircle2 className="w-4 h-4 mr-1" />
-                                অনুমোদন
+                                Approve
                               </Button>
                               <Button
                                 size="sm"
@@ -322,7 +364,7 @@ export default function AdminUsers() {
                                 data-testid={`button-reject-${user.id}`}
                               >
                                 <XCircle className="w-4 h-4 mr-1" />
-                                প্রত্যাখ্যান
+                                Reject
                               </Button>
                             </>
                           ) : (
@@ -335,9 +377,19 @@ export default function AdminUsers() {
                               data-testid={`button-deactivate-${user.id}`}
                             >
                               <UserX className="w-4 h-4 mr-1" />
-                              নিষ্ক্রিয় করুন
+                              Deactivate
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => handleDelete(user.id)}
+                            disabled={deleteUserMutation.isPending}
+                            data-testid={`button-delete-${user.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -348,6 +400,27 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteUserId !== null} onOpenChange={() => setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user account and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
