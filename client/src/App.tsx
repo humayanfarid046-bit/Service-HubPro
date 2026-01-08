@@ -14,6 +14,9 @@ import CustomerTracking from "@/pages/customer/Tracking";
 import CustomerProfile from "@/pages/customer/Profile";
 import CustomerSupport from "@/pages/customer/Support";
 import CustomerRegister from "@/pages/customer/Register";
+import CustomerPostJob from "@/pages/customer/PostJob";
+import CustomerMyJobs from "@/pages/customer/MyJobs";
+import CustomerViewBids from "@/pages/customer/ViewBids";
 
 // Worker Pages
 import WorkerDashboard from "@/pages/worker/Dashboard";
@@ -21,7 +24,10 @@ import WorkerJobDetails from "@/pages/worker/JobDetails";
 import WorkerEarnings from "@/pages/worker/Earnings";
 import WorkerProfile from "@/pages/worker/Profile";
 import WorkerSupport from "@/pages/worker/Support";
-import WorkerRegister from "@/pages/worker/Register"; // New Import
+import WorkerRegister from "@/pages/worker/Register";
+import WorkerBrowseJobs from "@/pages/worker/BrowseJobs";
+import WorkerPlaceBid from "@/pages/worker/PlaceBid";
+import WorkerMyBids from "@/pages/worker/MyBids";
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
@@ -257,6 +263,15 @@ function Router() {
       <Route path="/customer/support">
         <MobileLayout><PrivateRoute component={CustomerSupport} allowedRoles={["CUSTOMER"]} /></MobileLayout>
       </Route>
+      <Route path="/customer/post-job">
+        <MobileLayout><PrivateRoute component={CustomerPostJob} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/customer/my-jobs">
+        <MobileLayout><PrivateRoute component={CustomerMyJobs} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
+      <Route path="/customer/job/:id/bids">
+        <MobileLayout><PrivateRoute component={CustomerViewBids} allowedRoles={["CUSTOMER"]} /></MobileLayout>
+      </Route>
 
       {/* Worker Routes */}
       <Route path="/worker/dashboard">
@@ -274,7 +289,15 @@ function Router() {
        <Route path="/worker/support">
         <MobileLayout><PrivateRoute component={WorkerSupport} allowedRoles={["WORKER"]} /></MobileLayout>
       </Route>
-
+      <Route path="/worker/browse-jobs">
+        <MobileLayout><PrivateRoute component={WorkerBrowseJobs} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+      <Route path="/worker/job/:id/bid">
+        <MobileLayout><PrivateRoute component={WorkerPlaceBid} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
+      <Route path="/worker/my-bids">
+        <MobileLayout><PrivateRoute component={WorkerMyBids} allowedRoles={["WORKER"]} /></MobileLayout>
+      </Route>
 
       {/* Default Redirects */}
       <Route path="/">

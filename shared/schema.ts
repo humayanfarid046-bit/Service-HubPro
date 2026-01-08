@@ -420,6 +420,55 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 export type Announcement = typeof announcements.$inferSelect;
 
+// Jobs Table (Customer job postings for bidding)
+export const jobs = pgTable("jobs", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // HOME_VISIT, REMOTE
+  serviceType: text("service_type"), // plumbing, electrical, cleaning, etc.
+  budget: numeric("budget", { precision: 10, scale: 2 }),
+  budgetType: text("budget_type").default("fixed"), // fixed, hourly, negotiable
+  address: jsonb("address"), // for HOME_VISIT jobs
+  preferredDate: text("preferred_date"),
+  preferredTime: text("preferred_time"),
+  urgency: text("urgency").default("normal"), // urgent, normal, flexible
+  attachments: text("attachments"), // JSON array of image URLs
+  status: text("status").notNull().default("open"), // open, in_progress, assigned, completed, cancelled
+  selectedBidId: integer("selected_bid_id"),
+  selectedWorkerId: integer("selected_worker_id").references(() => users.id),
+  totalBids: integer("total_bids").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertJobSchema = createInsertSchema(jobs).omit({ id: true, createdAt: true, updatedAt: true, totalBids: true });
+export type InsertJob = z.infer<typeof insertJobSchema>;
+export type Job = typeof jobs.$inferSelect;
+
+// Bids Table (Worker bids on jobs)
+export const bids = pgTable("bids", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id),
+  workerId: integer("worker_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  proposedDate: text("proposed_date"),
+  proposedTime: text("proposed_time"),
+  estimatedDuration: text("estimated_duration"),
+  coverLetter: text("cover_letter"),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected, withdrawn
+  isSelected: boolean("is_selected").default(false).notNull(),
+  workerName: text("worker_name"),
+  workerRating: numeric("worker_rating", { precision: 3, scale: 2 }),
+  workerCategory: text("worker_category"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertBidSchema = createInsertSchema(bids).omit({ id: true, createdAt: true });
+export type InsertBid = z.infer<typeof insertBidSchema>;
+export type Bid = typeof bids.$inferSelect;
+
 // Reviews Table
 export const reviews = pgTable("reviews", {
   id: serial("id").primaryKey(),

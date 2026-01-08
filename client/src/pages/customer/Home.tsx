@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Sparkles, Star } from "lucide-react";
+import { Search, MapPin, Sparkles, Star, Plus, Briefcase, TrendingUp, Home, Laptop } from "lucide-react";
 import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function CustomerHome() {
   const [, setLocation] = useLocation();
@@ -48,19 +49,84 @@ export default function CustomerHome() {
         </div>
       </div>
 
-      {/* AI Suggestion Banner */}
-      <div className="px-6 -mt-6 mb-8 relative z-10">
-        <div className="bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-500/30 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-4 h-4 text-yellow-300" />
-              <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider">AI Assistant</span>
+      {/* Post Job Banner */}
+      <div className="px-6 -mt-6 mb-6 relative z-10">
+        <div 
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 text-white shadow-lg shadow-emerald-500/30 cursor-pointer active:scale-[0.98] transition-transform"
+          onClick={() => setLocation("/customer/post-job")}
+          data-testid="banner-post-job"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Plus className="w-4 h-4" />
+                <span className="text-xs font-bold text-emerald-100 uppercase tracking-wider">Post a Job</span>
+              </div>
+              <p className="text-sm font-medium">Describe your work & get bids from experts</p>
             </div>
-            <p className="text-sm font-medium">"Your AC might need servicing before summer!"</p>
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <TrendingUp className="w-6 h-6" />
+            </div>
           </div>
-          <Button size="sm" variant="secondary" className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md">
-            Check
-          </Button>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="px-6 mb-6">
+        <div className="grid grid-cols-2 gap-3">
+          <Card 
+            className="border-blue-100 bg-blue-50 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setLocation("/customer/my-jobs")}
+            data-testid="card-my-jobs"
+          >
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-slate-900">My Jobs</p>
+                <p className="text-xs text-slate-500">View posted jobs</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card 
+            className="border-purple-100 bg-purple-50 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setLocation("/customer/bookings")}
+            data-testid="card-my-bookings"
+          >
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <Star className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-slate-900">Bookings</p>
+                <p className="text-xs text-slate-500">Track orders</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Job Categories */}
+      <div className="px-6 mb-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-3">What type of job?</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <div 
+            className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 cursor-pointer hover:shadow-md transition-all"
+            onClick={() => setLocation("/customer/post-job")}
+          >
+            <Home className="w-8 h-8 text-blue-600 mb-2" />
+            <h3 className="font-bold text-slate-900">Home Visit</h3>
+            <p className="text-xs text-slate-500 mt-1">Worker comes to your location</p>
+          </div>
+          <div 
+            className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200 cursor-pointer hover:shadow-md transition-all"
+            onClick={() => setLocation("/customer/post-job")}
+          >
+            <Laptop className="w-8 h-8 text-purple-600 mb-2" />
+            <h3 className="font-bold text-slate-900">Remote</h3>
+            <p className="text-xs text-slate-500 mt-1">No home visit needed</p>
+          </div>
         </div>
       </div>
 

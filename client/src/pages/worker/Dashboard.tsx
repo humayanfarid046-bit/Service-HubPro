@@ -29,10 +29,10 @@ const REVIEWS = [
 ];
 
 const MINI_MENU_ITEMS = [
-    { icon: Bell, label: "Alerts", color: "text-blue-600", bg: "bg-blue-50" },
-    { icon: FileText, label: "Docs", color: "text-purple-600", bg: "bg-purple-50" },
-    { icon: Wallet, label: "Payouts", color: "text-emerald-600", bg: "bg-emerald-50" },
-    { icon: Star, label: "Ratings", color: "text-yellow-600", bg: "bg-yellow-50" },
+    { icon: Briefcase, label: "Browse Jobs", color: "text-blue-600", bg: "bg-blue-50", path: "/worker/browse-jobs" },
+    { icon: TrendingUp, label: "My Bids", color: "text-purple-600", bg: "bg-purple-50", path: "/worker/my-bids" },
+    { icon: Wallet, label: "Payouts", color: "text-emerald-600", bg: "bg-emerald-50", path: "/worker/earnings" },
+    { icon: Star, label: "Ratings", color: "text-yellow-600", bg: "bg-yellow-50", path: "/worker/profile" },
 ];
 
 export default function WorkerDashboard() {
@@ -113,7 +113,12 @@ export default function WorkerDashboard() {
         {/* 5. Dashboard Mini Menu */}
         <div className="grid grid-cols-4 gap-3">
              {MINI_MENU_ITEMS.map((item, i) => (
-                <button key={i} className="flex flex-col items-center gap-2 p-2 bg-white rounded-2xl border border-slate-100 shadow-sm hover:scale-105 transition-transform">
+                <button 
+                  key={i} 
+                  className="flex flex-col items-center gap-2 p-2 bg-white rounded-2xl border border-slate-100 shadow-sm hover:scale-105 transition-transform"
+                  onClick={() => item.path && setLocation(item.path)}
+                  data-testid={`menu-item-${item.label.toLowerCase().replace(' ', '-')}`}
+                >
                     <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", item.bg, item.color)}>
                         <item.icon className="w-5 h-5" />
                     </div>
