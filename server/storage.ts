@@ -82,6 +82,12 @@ import {
   chatMessages,
   type ChatMessage,
   type InsertChatMessage,
+  jobs,
+  type Job,
+  type InsertJob,
+  bids,
+  type Bid,
+  type InsertBid,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -242,6 +248,23 @@ export interface IStorage {
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   updateChatMessage(id: number, updates: Partial<ChatMessage>): Promise<ChatMessage | undefined>;
   deleteChatMessage(id: number): Promise<boolean>;
+  
+  // Jobs
+  getJob(id: number): Promise<Job | undefined>;
+  getAllJobs(): Promise<Job[]>;
+  getJobsByCustomer(customerId: number): Promise<Job[]>;
+  getOpenJobs(): Promise<Job[]>;
+  createJob(job: InsertJob): Promise<Job>;
+  updateJob(id: number, updates: Partial<Job>): Promise<Job | undefined>;
+  deleteJob(id: number): Promise<boolean>;
+  
+  // Bids
+  getBid(id: number): Promise<Bid | undefined>;
+  getBidsByJob(jobId: number): Promise<Bid[]>;
+  getBidsByWorker(workerId: number): Promise<Bid[]>;
+  createBid(bid: InsertBid): Promise<Bid>;
+  updateBid(id: number, updates: Partial<Bid>): Promise<Bid | undefined>;
+  deleteBid(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -831,6 +854,73 @@ export class DatabaseStorage implements IStorage {
   
   async deleteChatMessage(id: number): Promise<boolean> {
     await db.delete(chatMessages).where(eq(chatMessages.id, id));
+    return true;
+  }
+  
+  // Jobs
+  async getJob(id: number): Promise<Job | undefined> {
+    const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
+    return job;
+  }
+  
+  async getAllJobs(): Promise<Job[]> {
+    return db.select().from(jobs).orderBy(desc(jobs.createdAt));
+  }
+  
+  async getJobsByCustomer(customerId: number): Promise<Job[]> {
+    return db.select().from(jobs).where(eq(jobs.customerId, customerId)).orderBy(desc(jobs.createdAt));
+  }
+  
+  async getOpenJobs(): Promise<Job[]> {
+    return db.select().from(jobs).where(eq(jobs.status, "open")).orderBy(desc(jobs.createdAt));
+  }
+  
+  async createJob(job: InsertJob): Promise<Job> {
+    const [created] = await db.insert(jobs).values(job).returning();
+    return created;
+  }
+  
+  async updateJob(id: number, updates: Partial<Job>): Promise<Job | undefined> {
+    const [updated] = await db.update(jobs).set({ ...updates, updatedAt: new Date() }).where(eq(jobs.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteJob(id: number): Promise<boolean> {
+    await db.delete(jobs).where(eq(jobs.id, id));
+    return true;
+  }
+  
+  // Bids
+  async getBid(id: number): Promise<Bid | undefined> {
+    const [bid] = await db.select().from(bids).where(eq(bids.id, id));
+    return bid;
+  }
+  
+  async getBidsByJob(jobId: number): Promise<Bid[]> {
+    return db.select().from(bids).where(eq(bids.jobId, jobId)).orderBy(desc(bids.createdAt));
+  }
+  
+  async getBidsByWorker(workerId: number): Promise<Bid[]> {
+    return db.select().from(bids).where(eq(bids.workerId, workerId)).orderBy(desc(bids.createdAt));
+  }
+  
+  async createBid(bid: InsertBid): Promise<Bid> {
+    const [created] = await db.insert(bids).values(bid).returning();
+    // Increment totalBids on the job
+    const job = await this.getJob(bid.jobId);
+    if (job) {
+      await this.updateJob(bid.jobId, { totalBids: (job.totalBids || 0) + 1 });
+    }
+    return created;
+  }
+  
+  async updateBid(id: number, updates: Partial<Bid>): Promise<Bid | undefined> {
+    const [updated] = await db.update(bids).set(updates).where(eq(bids.id, id)).returning();
+    return updated;
+  }
+  
+  async deleteBid(id: number): Promise<boolean> {
+    await db.delete(bids).where(eq(bids.id, id));
     return true;
   }
 }

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertCustomerDetailsSchema, insertWorkerDetailsSchema, insertServiceSchema, insertBookingSchema } from "@shared/schema";
+import { insertUserSchema, insertCustomerDetailsSchema, insertWorkerDetailsSchema, insertServiceSchema, insertBookingSchema, insertJobSchema, insertBidSchema } from "@shared/schema";
 import { z } from "zod";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
@@ -1277,6 +1277,149 @@ export async function registerRoutes(
       const dispute = await storage.updateDispute(parseInt(req.params.id), req.body);
       if (!dispute) return res.status(404).json({ error: "Dispute not found" });
       res.json(dispute);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ============= JOBS & BIDS ROUTES =============
+  
+  // Get all jobs
+  app.get("/api/jobs", async (req, res) => {
+    try {
+      const { customerId, status } = req.query;
+      let jobsList;
+      if (customerId) {
+        jobsList = await storage.getJobsByCustomer(parseInt(customerId as string));
+      } else if (status === "open") {
+        jobsList = await storage.getOpenJobs();
+      } else {
+        jobsList = await storage.getAllJobs();
+      }
+      res.json(jobsList);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get single job
+  app.get("/api/jobs/:id", async (req, res) => {
+    try {
+      const job = await storage.getJob(parseInt(req.params.id));
+      if (!job) return res.status(404).json({ error: "Job not found" });
+      res.json(job);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create job
+  app.post("/api/jobs", async (req, res) => {
+    try {
+      const validated = insertJobSchema.parse(req.body);
+      const job = await storage.createJob(validated);
+      res.status(201).json(job);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Update job
+  app.patch("/api/jobs/:id", async (req, res) => {
+    try {
+      const job = await storage.updateJob(parseInt(req.params.id), req.body);
+      if (!job) return res.status(404).json({ error: "Job not found" });
+      res.json(job);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete job
+  app.delete("/api/jobs/:id", async (req, res) => {
+    try {
+      await storage.deleteJob(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get bids for a job
+  app.get("/api/jobs/:id/bids", async (req, res) => {
+    try {
+      const bids = await storage.getBidsByJob(parseInt(req.params.id));
+      res.json(bids);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all bids for a worker
+  app.get("/api/bids", async (req, res) => {
+    try {
+      const { workerId } = req.query;
+      if (workerId) {
+        const bids = await storage.getBidsByWorker(parseInt(workerId as string));
+        res.json(bids);
+      } else {
+        res.status(400).json({ error: "workerId is required" });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create bid
+  app.post("/api/bids", async (req, res) => {
+    try {
+      const validated = insertBidSchema.parse(req.body);
+      const bid = await storage.createBid(validated);
+      res.status(201).json(bid);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Update bid
+  app.patch("/api/bids/:id", async (req, res) => {
+    try {
+      const bid = await storage.updateBid(parseInt(req.params.id), req.body);
+      if (!bid) return res.status(404).json({ error: "Bid not found" });
+      res.json(bid);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Select a bid (customer accepts worker)
+  app.post("/api/jobs/:jobId/select-bid/:bidId", async (req, res) => {
+    try {
+      const jobId = parseInt(req.params.jobId);
+      const bidId = parseInt(req.params.bidId);
+      
+      const bid = await storage.getBid(bidId);
+      if (!bid) return res.status(404).json({ error: "Bid not found" });
+      
+      // Update the bid as selected
+      await storage.updateBid(bidId, { isSelected: true, status: "accepted" });
+      
+      // Update the job with selected worker
+      const job = await storage.updateJob(jobId, { 
+        selectedBidId: bidId, 
+        selectedWorkerId: bid.workerId,
+        status: "assigned" 
+      });
+      
+      // Reject all other bids
+      const allBids = await storage.getBidsByJob(jobId);
+      for (const otherBid of allBids) {
+        if (otherBid.id !== bidId) {
+          await storage.updateBid(otherBid.id, { status: "rejected" });
+        }
+      }
+      
+      res.json({ job, selectedBid: bid });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
