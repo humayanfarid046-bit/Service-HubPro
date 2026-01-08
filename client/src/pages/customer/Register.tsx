@@ -38,6 +38,8 @@ export default function CustomerRegister() {
     toast({ title: "OTP Sent", description: "Code sent to " + formData.phone });
   };
 
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
   const handleCreateAccount = async () => {
     if (!formData.name || !formData.phone) {
       toast({ title: "Missing Fields", description: "Please fill all required fields.", variant: "destructive" });
@@ -52,20 +54,51 @@ export default function CustomerRegister() {
         profilePhoto: null,
         gender: formData.gender || null,
         dateOfBirth: null,
-        isActive: true,
+        isActive: false,
         house: formData.house,
         street: formData.street,
         city: formData.city,
         pincode: formData.pincode,
       });
 
-      toast({ title: "Account Created!", description: "Welcome to ServiceHub Pro." });
-      login("CUSTOMER", response.user);
-      setLocation("/customer/home");
+      // Show success screen instead of logging in
+      setSubmissionSuccess(true);
     } catch (error: any) {
       toast({ title: "Registration Failed", description: error.message, variant: "destructive" });
     }
   };
+
+  // Success screen after submission
+  if (submissionSuccess) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-green-200/30 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-200/30 rounded-full blur-[120px]" />
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md relative z-10"
+        >
+          <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-xl shadow-slate-200/50 p-8 border border-white text-center">
+            <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-green-500/30 mb-6">
+              <CheckCircle2 className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-3">Submission Successful!</h1>
+            <p className="text-slate-600 text-base leading-relaxed mb-8">
+              Our team will review your request and get in touch with you shortly.
+            </p>
+            <Button 
+              className="w-full h-14 rounded-2xl text-lg font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20"
+              onClick={() => setLocation("/auth")}
+            >
+              Back to Login
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">

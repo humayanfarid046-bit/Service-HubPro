@@ -78,6 +78,15 @@ export default function AuthPage() {
           setLocation("/customer/home");
         }
         return;
+      } else if (checkData.exists && checkData.pendingApproval) {
+        // User exists but pending approval
+        setIsLoading(false);
+        toast({ 
+          title: "Pending Approval", 
+          description: checkData.message || "Your account is pending approval. Our team will review your request and get in touch with you shortly.",
+          duration: 5000
+        });
+        return;
       } else {
         setIsLoading(false);
         toast({ title: "User not found", description: "Please create an account.", variant: "destructive" });
@@ -109,7 +118,15 @@ export default function AuthPage() {
       setIsLoading(false);
       
       if (data.success && data.verified) {
-        if (data.user) {
+        if (data.pendingApproval) {
+          // User exists but pending approval
+          toast({ 
+            title: "Pending Approval", 
+            description: data.message || "Your account is pending approval. Our team will review your request and get in touch with you shortly.",
+            duration: 5000
+          });
+          return;
+        } else if (data.user) {
           const userRole = data.user.role as "ADMIN" | "WORKER" | "CUSTOMER";
           login(userRole, data.user);
           

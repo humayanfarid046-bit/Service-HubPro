@@ -79,6 +79,18 @@ export async function registerRoutes(
         if (otp === "1234") {
           otpSessions.delete(phone);
           const user = await storage.getUserByPhone(phone);
+          
+          // Check if user exists and is pending approval
+          if (user && !user.isActive) {
+            return res.json({ 
+              success: true, 
+              verified: true,
+              user: null,
+              pendingApproval: true,
+              message: "Your account is pending approval. Our team will review your request and get in touch with you shortly."
+            });
+          }
+          
           return res.json({ 
             success: true, 
             verified: true,
@@ -101,6 +113,18 @@ export async function registerRoutes(
       if (data.Status === "Success") {
         otpSessions.delete(phone);
         const user = await storage.getUserByPhone(phone);
+        
+        // Check if user exists and is pending approval
+        if (user && !user.isActive) {
+          return res.json({ 
+            success: true, 
+            verified: true,
+            user: null,
+            pendingApproval: true,
+            message: "Your account is pending approval. Our team will review your request and get in touch with you shortly."
+          });
+        }
+        
         return res.json({ 
           success: true, 
           verified: true,
@@ -126,6 +150,16 @@ export async function registerRoutes(
       const existingUser = await storage.getUserByPhone(phone);
       
       if (existingUser) {
+        // Check if user is pending approval (isActive = false)
+        if (!existingUser.isActive) {
+          return res.json({
+            exists: true,
+            user: null,
+            pendingApproval: true,
+            message: "Your account is pending approval. Our team will review your request and get in touch with you shortly."
+          });
+        }
+        
         // Return user info for login
         return res.json({
           exists: true,
@@ -148,7 +182,8 @@ export async function registerRoutes(
     try {
       const userData = insertUserSchema.parse({
         ...req.body,
-        role: "CUSTOMER"
+        role: "CUSTOMER",
+        isActive: false  // Customer starts as inactive, needs admin approval
       });
       
       const user = await storage.createUser(userData);
@@ -164,7 +199,11 @@ export async function registerRoutes(
         });
       }
       
-      res.json({ user, message: "Customer registered successfully" });
+      res.json({ 
+        user, 
+        message: "Submission Successful! Our team will review your request and get in touch with you shortly.",
+        pendingApproval: true
+      });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -181,7 +220,7 @@ export async function registerRoutes(
         profilePhoto: req.body.profilePhoto,
         gender: req.body.gender,
         dateOfBirth: req.body.dateOfBirth,
-        isActive: true,
+        isActive: false,  // Worker starts as inactive, needs admin approval
       });
       
       const user = await storage.createUser(userData);
@@ -209,7 +248,11 @@ export async function registerRoutes(
         totalEarnings: "0",
       });
       
-      res.json({ user, message: "Worker registered successfully. Awaiting admin approval." });
+      res.json({ 
+        user, 
+        message: "Submission Successful! Our team will review your request and get in touch with you shortly.",
+        pendingApproval: true
+      });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
