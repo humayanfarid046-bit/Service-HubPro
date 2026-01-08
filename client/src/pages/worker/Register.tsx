@@ -117,7 +117,7 @@ export default function WorkerRegister() {
         profilePhoto: null,
         gender: formData.gender || null,
         dateOfBirth: formData.dob || null,
-        isActive: true,
+        isActive: false,
         category: formData.category,
         subService: formData.subService,
         experience: parseInt(formData.experience) || 0,
