@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Service-HubPro</string>
+    <string name="title_activity_main">Service-HubPro</string>
+    <string name="package_name">com.servicehubpro.app</string>
+    <string name="custom_url_scheme">com.servicehubpro.app</string>
+</resources>
